@@ -1,0 +1,371 @@
+const { pool } = require('../config/db');
+const securityUtils = require('../utils/security-utils');
+const passwordConfig = require('../config/password-config');
+const { validatePassword } = require('../utils/password-validator');
+
+
+// User-related database functions
+const userModel = {
+  // Create a new user (vulnerable version for SQL injection demonstration)
+  async createUserVulnerable(username, email, password) {
+    const connection = await pool.getConnection();
+    try {
+      // Validate password against configuration
+      const validationResult = await validatePassword(password);
+      if (!validationResult.valid) {
+        return { 
+          success: false, 
+          message: 'Password does not meet requirements', 
+          errors: validationResult.errors 
+        };
+      }
+      
+      // Generate salt and hash
+      const salt = securityUtils.generateSalt();
+      const passwordHash = securityUtils.hashPassword(password, salt);
+      
+      // Vulnerable to SQL injection
+      const query = `INSERT INTO users (username, email, password_hash, salt) 
+                     VALUES ('${username}', '${email}', '${passwordHash}', '${salt}')`;
+      
+      const [result] = await connection.query(query);
+      
+      // Add password to history
+      await connection.query(
+        `INSERT INTO password_history (user_id, password_hash, salt) 
+         VALUES (${result.insertId}, '${passwordHash}', '${salt}')`
+      );
+      
+      return { success: true, userId: result.insertId };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
+    }
+  },
+  
+  // Create a new user (secure version)
+  async createUserSecure(username, email, password) {
+    const connection = await pool.getConnection();
+    try {
+      // Validate password against configuration
+      const validationResult = await validatePassword(password);
+      if (!validationResult.valid) {
+        return { 
+          success: false, 
+          message: 'Password does not meet requirements', 
+          errors: validationResult.errors 
+        };
+      }
+      
+      // Generate salt and hash
+      const salt = securityUtils.generateSalt();
+      const passwordHash = securityUtils.hashPassword(password, salt);
+      
+      // Secure with parameterized queries
+      const [result] = await connection.query(
+        'INSERT INTO users (username, email, password_hash, salt) VALUES (?, ?, ?, ?)',
+        [username, email, passwordHash, salt]
+      );
+      
+      // Add password to history
+      await connection.query(
+        'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
+        [result.insertId, passwordHash, salt]
+      );
+      
+      return { success: true, userId: result.insertId };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
+    }
+  },
+  
+  // Verify user login (vulnerable version)
+  async verifyUserVulnerable(email, password) {
+    const connection = await pool.getConnection();
+    try {
+      // Vulnerable to SQL injection
+      const query = `SELECT * FROM users WHERE email = '${email}'`;
+      const [users] = await connection.query(query);
+      
+      if (users.length === 0) {
+        return { success: false, message: 'Invalid credentials' };
+      }
+      
+      const user = users[0];
+      const hashedPassword = securityUtils.hashPassword(password, user.salt);
+      
+      if (hashedPassword !== user.password_hash) {
+        // Update failed login attempts
+        await connection.query(
+          `UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE user_id = ${user.user_id}`
+        );
+        
+        // Check if account should be locked using config
+        const maxAttempts = passwordConfig.loginAttempts.max;
+        if (user.failed_login_attempts + 1 >= maxAttempts) {
+          await connection.query(
+            `UPDATE users SET account_locked = TRUE WHERE user_id = ${user.user_id}`
+          );
+        }
+        
+        return { success: false, message: 'Invalid credentials' };
+      }
+      
+      // Reset failed login attempts
+      await connection.query(
+        `UPDATE users SET failed_login_attempts = 0 WHERE user_id = ${user.user_id}`
+      );
+      
+      return { 
+        success: true,
+        userId: user.user_id,
+        username: user.username,
+        email: user.email
+      };
+    } catch (error) {
+      console.error('Error verifying user:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
+    }
+  },
+  
+  // Verify user login (secure version)
+  async verifyUserSecure(email, password) {
+    const connection = await pool.getConnection();
+    try {
+      // Secure with parameterized query
+      const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+      
+      if (users.length === 0) {
+        return { success: false, message: 'Invalid credentials' };
+      }
+      
+      const user = users[0];
+      const hashedPassword = securityUtils.hashPassword(password, user.salt);
+      
+      if (hashedPassword !== user.password_hash) {
+        // Update failed login attempts
+        await connection.query(
+          'UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE user_id = ?',
+          [user.user_id]
+        );
+        
+        // Check if account should be locked using config
+        const maxAttempts = passwordConfig.loginAttempts.max;
+        if (user.failed_login_attempts + 1 >= maxAttempts) {
+          await connection.query(
+            'UPDATE users SET account_locked = TRUE WHERE user_id = ?',
+            [user.user_id]
+          );
+        }
+        
+        return { success: false, message: 'Invalid credentials' };
+      }
+      
+      // Reset failed login attempts
+      await connection.query(
+        'UPDATE users SET failed_login_attempts = 0 WHERE user_id = ?',
+        [user.user_id]
+      );
+      
+      return { 
+        success: true,
+        userId: user.user_id,
+        username: user.username,
+        email: user.email
+      };
+    } catch (error) {
+      console.error('Error verifying user:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
+    }
+  },
+  
+  // Change user password
+  async changePassword(userId, currentPassword, newPassword) {
+    const connection = await pool.getConnection();
+    try {
+      // Get user info
+      const [users] = await connection.query('SELECT * FROM users WHERE user_id = ?', [userId]);
+      
+      if (users.length === 0) {
+        return { success: false, message: 'User not found' };
+      }
+      
+      const user = users[0];
+      
+      // Verify current password
+      const hashedCurrentPassword = securityUtils.hashPassword(currentPassword, user.salt);
+      if (hashedCurrentPassword !== user.password_hash) {
+        return { success: false, message: 'Current password is incorrect' };
+      }
+      
+      // Validate new password against configuration
+      const validationResult = await validatePassword(newPassword, userId);
+      if (!validationResult.valid) {
+        return { 
+          success: false, 
+          message: 'Password does not meet requirements', 
+          errors: validationResult.errors 
+        };
+      }
+      
+      // Generate new salt and hash
+      const newSalt = securityUtils.generateSalt();
+      const newPasswordHash = securityUtils.hashPassword(newPassword, newSalt);
+      
+      // Check password history
+      const historyCount = passwordConfig.history.count;
+      const [history] = await connection.query(
+        'SELECT * FROM password_history WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
+        [userId, historyCount]
+      );
+      
+      for (const item of history) {
+        const historicalHash = securityUtils.hashPassword(newPassword, item.salt);
+        if (historicalHash === item.password_hash) {
+          return { success: false, message: `Cannot reuse one of your last ${historyCount} passwords` };
+        }
+      }
+      
+      // Update password
+      await connection.query(
+        'UPDATE users SET password_hash = ?, salt = ? WHERE user_id = ?',
+        [newPasswordHash, newSalt, userId]
+      );
+      
+      // Add to password history
+      await connection.query(
+        'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
+        [userId, newPasswordHash, newSalt]
+      );
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error changing password:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
+    }
+  },
+  
+  // Generate password reset token
+  async requestPasswordReset(email) {
+    const connection = await pool.getConnection();
+    try {
+      const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+      
+      if (users.length === 0) {
+        // For security, don't reveal if email exists
+        return { success: true };
+      }
+      
+      const user = users[0];
+      
+      // Generate token using SHA-1 as required
+      const resetToken = securityUtils.generateResetToken();
+      
+      // Set token expiry to 1 hour from now
+      const expiry = new Date();
+      expiry.setHours(expiry.getHours() + 1);
+      
+      // Save token to database
+      await connection.query(
+        'UPDATE users SET password_reset_token = ?, password_reset_token_expiry = ? WHERE user_id = ?',
+        [resetToken, expiry, user.user_id]
+      );
+      
+      return { 
+        success: true,
+        token: resetToken, // In production, this would be sent via email
+        userId: user.user_id
+      };
+    } catch (error) {
+      console.error('Error requesting password reset:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
+    }
+  },
+  
+  // Validate reset token and update password
+  async resetPassword(token, newPassword) {
+    const connection = await pool.getConnection();
+    try {
+      const [users] = await connection.query(
+        'SELECT * FROM users WHERE password_reset_token = ? AND password_reset_token_expiry > NOW()',
+        [token]
+      );
+      
+      if (users.length === 0) {
+        return { success: false, message: 'Invalid or expired token' };
+      }
+      
+      const user = users[0];
+      
+      // Validate new password against configuration
+      const validationResult = await validatePassword(newPassword);
+      if (!validationResult.valid) {
+        return { 
+          success: false, 
+          message: 'Password does not meet requirements', 
+          errors: validationResult.errors 
+        };
+      }
+      
+      // Generate new salt and hash
+      const newSalt = securityUtils.generateSalt();
+      const newPasswordHash = securityUtils.hashPassword(newPassword, newSalt);
+      
+      // Update password
+      await connection.query(
+        'UPDATE users SET password_hash = ?, salt = ?, password_reset_token = NULL, password_reset_token_expiry = NULL WHERE user_id = ?',
+        [newPasswordHash, newSalt, user.user_id]
+      );
+      
+      // Add to password history
+      await connection.query(
+        'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
+        [user.user_id, newPasswordHash, newSalt]
+      );
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
+    }
+  },
+  
+async findUserByEmail(email) {
+  const connection = await pool.getConnection();
+  try {
+    // Secure with parameterized query
+    const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
+      return { success: false, message: 'User not found' };
+    }
+    
+    return { 
+      success: true,
+      user: users[0]
+    };
+  } catch (error) {
+    console.error('Error finding user by email:', error);
+    return { success: false, error: error.message };
+  } finally {
+    connection.release();
+  }
+}
+};
+
+module.exports = userModel;
