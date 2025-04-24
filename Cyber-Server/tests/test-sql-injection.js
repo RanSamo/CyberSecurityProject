@@ -1,159 +1,328 @@
-const userModel = require('../models/user-model.js');
-const customerModel = require('../models/customer-model.js');
-const { pool } = require('../db');
+// test-sql-injection.js - Script to demonstrate SQL injection vulnerabilities
+const customerModel = require('../models/customer-model');
+const userModel = require('../models/user-model');
+const { pool } = require('../config/db');
 
-async function testSqlInjection() {
-  console.log('=====================================');
-  console.log('TESTING SQL INJECTION VULNERABILITIES');
-  console.log('=====================================');
-  console.log('This test demonstrates SQL injection vulnerabilities in our application');
-  console.log('and how parameterized queries protect against them.');
-  console.log('\n');
-  
-  try {
-    const connection = await pool.getConnection();
-    
-    // ======== TEST 1: SQL INJECTION IN CUSTOMER SEARCH ========
-    console.log('TEST 1: SQL INJECTION IN CUSTOMER SEARCH (Part A, Section 4)');
-    console.log('------------------------------------------------');
-    
-    // First, do a normal search that should find few results
-    console.log('Step 1: Normal search for a specific term:');
-    const normalSearch = await customerModel.getCustomersVulnerable('UnlikelyName');
-    console.log(`Result: Found ${normalSearch.customers?.length} customers\n`);
-    
-    // Now try an SQL injection that should return ALL customers
-    console.log('Step 2: Malicious search using SQL injection:');
-    console.log('Injection string: \'' + "' OR '1'='1" + '\'');
-    console.log('This injection makes the WHERE clause always true, returning all records\n');
-    
-    const allCustomers = await customerModel.getCustomersVulnerable("' OR '1'='1");
-    console.log(`Result: Found ${allCustomers.customers?.length} customers`);
-    
-    if (allCustomers.customers?.length > normalSearch.customers?.length) {
-      console.log('VULNERABILITY CONFIRMED: The SQL injection returned more customers than the normal search!');
-      console.log('This demonstrates a serious SQL injection vulnerability.\n');
-      
-      // Show the actual vulnerable query
-      console.log('The vulnerable query that was executed looks like:');
-      console.log(`SELECT * FROM customers WHERE first_name LIKE '%' OR '1'='1%' OR last_name LIKE '%' OR '1'='1%' OR email LIKE '%' OR '1'='1%'`);
-      console.log('Notice how the injection made the WHERE clause always true by adding OR \'1\'=\'1\'\n');
-    }
-    
-    // ======== TEST 2: SQL INJECTION IN USER REGISTRATION ========
-console.log('\nTEST 2: SQL INJECTION IN USER REGISTRATION (Part A, Section 1)');
-console.log('---------------------------------------------------');
-
-// Define a malicious payload that will create an admin user
-const maliciousUsername = "hacker";
-const maliciousEmail = "normal@example.com', 'fake_hash', 'fake_salt', TRUE); -- ";
-
-console.log('Malicious registration input:');
-console.log(`Username: ${maliciousUsername}`);
-console.log(`Email: ${maliciousEmail}`);
-console.log('The \' character breaks out of the string, and the -- comments out the rest of the query\n');
-
-// Show what the vulnerable query would look like
-console.log('The vulnerable query would execute as:');
-const vulnerableQuery = `INSERT INTO users (username, email, password_hash, salt, is_admin) 
-                      VALUES ('${maliciousUsername}', '${maliciousEmail}')`;
-console.log(vulnerableQuery);
-console.log('This should create a user with admin privileges!\n');
-
-// Actually execute the vulnerable query to demonstrate the real injection
-console.log('Executing the vulnerable query to create user with SQL injection...');
-try {
-  // Using direct string concatenation to demonstrate vulnerability
-  await connection.query(`INSERT INTO users (username, email, password_hash, salt, is_admin) 
-                       VALUES ('${maliciousUsername}', '${maliciousEmail}')`);
-  
-  // Verify the user was created with admin privileges
-  const [results] = await connection.query(`SELECT * FROM users WHERE username = '${maliciousUsername}'`);
-  
-  if (results.length > 0) {
-    console.log('User successfully created with SQL injection!');
-    console.log('User details:', results[0]);
-    console.log(`Admin status: ${results[0].is_admin ? 'YES - ADMIN USER CREATED!' : 'No'}`);
-    
-    if (results[0].is_admin) {
-      console.log('VULNERABILITY CONFIRMED: Successfully created an admin user through SQL injection!');
-    }
-  } else {
-    console.log('Failed to create user with SQL injection.');
-  }
-} catch (error) {
-  console.error('Error during SQL injection test:', error);
+// Helper function to display results
+function displayResults(title, data) {
+  console.log(`\n=== ${title} ===`);
+  console.log(JSON.stringify(data, null, 2));
+  console.log("=============================================");
 }
 
-// Cleanup - remove the test user (optional)
-console.log('\nCleaning up - removing test user...');
-await connection.query(`DELETE FROM users WHERE username = '${maliciousUsername}'`);
+async function runTests() {
+  console.log('======================================================');
+  console.log('SQL INJECTION & XSS VULNERABILITY DEMONSTRATION');
+  console.log('======================================================');
+  
+  try {
+    /**
+     * PART 1: SQL INJECTION IN USER REGISTRATION (Section 1 in Part A)
+     * Demonstrating SQL injection in the registration process
+     */
+    console.log('\n\n======= PART 1: SQL INJECTION IN USER REGISTRATION =======');
     
-    // ======== TEST 3: SQL INJECTION IN LOGIN ========
-    console.log('\nTEST 3: SQL INJECTION IN LOGIN (Part A, Section 3)');
-    console.log('-------------------------------------------');
+    // Using a valid password that meets all requirements to bypass validation
+    const securePassword = "BasketB123!";
     
-    // Show how login can be bypassed with SQL injection
-    const anotherMaliciousUsername = "' OR '1'='1";
-    console.log('Malicious login input:');
-    console.log(`Username: ${anotherMaliciousUsername}`);
-    console.log('Password: anything (doesn\'t matter with the injection)\n');
+    // 1. Normal registration with secure function
+    console.log('\n1.1. Normal user registration with secure function:');
+    console.log('Using: userModel.createUserSecure("normal@example.com", "BasketB123!")');
     
-    // Show the vulnerable query
-    console.log('When using string concatenation, the query becomes:');
-    console.log(`SELECT * FROM users WHERE username = '${anotherMaliciousUsername}'`);
-    console.log('Which evaluates to:');
-    console.log(`SELECT * FROM users WHERE username = '' OR '1'='1'`);
-    console.log('Since 1=1 is always true, this will return ALL users!\n');
+    const normalSecureResult = await userModel.createUserSecure(
+      "normal@example.com", 
+      securePassword
+    );
+    console.log('Result:', normalSecureResult);
     
-    // Execute the query to prove the vulnerability
-    console.log('Running this query directly to demonstrate the vulnerability:');
-    const [users] = await connection.query(`SELECT * FROM users WHERE username = '${anotherMaliciousUsername}'`);
-    console.log(`Result: Query returned ${users.length} users`);
+    // 2. Normal registration with vulnerable function
+    console.log('\n1.2. Normal user registration with vulnerable function:');
+    console.log('Using: userModel.createUserVulnerable("normal2@example.com", "BasketB123!")');
     
-    if (users.length > 0) {
-      console.log('VULNERABILITY CONFIRMED: SQL injection returned user data without knowing valid credentials!\n');
+    const normalVulnerableResult = await userModel.createUserVulnerable(
+      "normal2@example.com", 
+      securePassword
+    );
+    console.log('Result:', normalVulnerableResult);
+    
+    // 3. SQL Injection attempt with vulnerable function
+    console.log('\n1.3. SQL Injection in user registration:');
+    
+    // SQL Injection in email field - attempts to insert values directly
+    const maliciousEmail = "evil@example.com', 'injectedhash', 'injectedsalt'); -- ";
+    
+    console.log(`Using SQL injection in email field: "${maliciousEmail}"`);
+    console.log(`Resulting query will be: INSERT INTO users (email, password_hash, salt) VALUES ('${maliciousEmail}', '...', '...')`);
+    console.log('Which becomes: INSERT INTO users (email, password_hash, salt) VALUES (\'evil@example.com\', \'injectedhash\', \'injectedsalt\'); -- \', \'...\', \'...\')');
+    
+    try {
+      const injectionResult = await userModel.createUserVulnerable(
+        maliciousEmail, 
+        securePassword
+      );
+      console.log('Result:', injectionResult);
+    } catch (error) {
+      console.log('Error occurred (expected):', error.message);
     }
     
-    // ======== TEST 4: SECURE IMPLEMENTATION WITH PARAMETERIZED QUERIES ========
-    console.log('\nTEST 4: SECURE IMPLEMENTATION (Part B, Section 4)');
-    console.log('----------------------------------------------');
+    // 4. Show that the same injection fails with secure function
+    console.log('\n1.4. Same SQL Injection attempt with secure function:');
+    console.log(`Using: userModel.createUserSecure("${maliciousEmail}", "BasketB123!")`);
     
-    console.log('Now testing the secure version that uses parameterized queries...\n');
-    
-    // Test the secure version of customer search with the same injection string
-    console.log('Testing the secure customer search with same injection string:');
-    console.log('Injection string: \'' + "' OR '1'='1" + '\'');
-    
-    const secureSearchResult = await customerModel.getCustomersSecure("' OR '1'='1");
-    console.log(`Result: Found ${secureSearchResult.customers?.length} customers`);
-    
-    if (secureSearchResult.customers?.length < allCustomers.customers?.length) {
-      console.log('SECURITY CONFIRMED: The secure version correctly treated the input as a regular search term!');
-      console.log('With parameterized queries, the injection is treated as literal text, not as SQL code.\n');
-      
-      // Show the secure parameterized query
-      console.log('A parameterized query looks like:');
-      console.log(`SELECT * FROM customers WHERE first_name LIKE ? OR last_name LIKE ? OR email LIKE ?`);
-      console.log('The parameters are passed separately from the SQL code, preventing injection attacks.\n');
+    try {
+      const secureInjectionResult = await userModel.createUserSecure(
+        maliciousEmail, 
+        securePassword
+      );
+      console.log('Result:', secureInjectionResult);
+    } catch (error) {
+      console.log('Error occurred:', error.message);
     }
     
+    /**
+     * PART 2: SQL INJECTION IN USER LOGIN (Section 3 in Part A)
+     * Demonstrating SQL injection in the login process
+     */
+    console.log('\n\n======= PART 2: SQL INJECTION IN USER LOGIN =======');
+    
+    // 1. Normal login with secure function
+    console.log('\n2.1. Normal login with secure function:');
+    console.log('Using: userModel.verifyUserSecure("normal@example.com", "BasketB123!")');
+    
+    const normalLoginSecure = await userModel.verifyUserSecure(
+      "normal@example.com",
+      securePassword
+    );
+    console.log('Result:', normalLoginSecure);
+    
+    // 2. Normal login with vulnerable function
+    console.log('\n2.2. Normal login with vulnerable function:');
+    console.log('Using: userModel.verifyUserVulnerable("normal@example.com", "BasketB123!")');
+    
+    const normalLoginVulnerable = await userModel.verifyUserVulnerable(
+      "normal@example.com",
+      securePassword
+    );
+    console.log('Result:', normalLoginVulnerable);
+    
+    // 3. SQL Injection in login with vulnerable function
+    console.log('\n2.3. SQL Injection to bypass login:');
+    
+    // Try to target a specific user with SQL injection
+    const bypassEmail = "' OR email = 'normal@example.com' -- ";
+    const wrongPassword = "wrong_password";
+    
+    console.log(`Using SQL injection in email field: "${bypassEmail}"`);
+    console.log(`Resulting query will be: SELECT * FROM users WHERE email = '${bypassEmail}'`);
+    console.log("Which becomes: SELECT * FROM users WHERE email = '' OR email='normal@example.com' -- '");
+    
+    const injectionLoginResult = await userModel.verifyUserVulnerable(
+      bypassEmail,
+      wrongPassword
+    );
+    console.log('Result:', injectionLoginResult);
+    
+    // 4. Show that the same injection fails with secure function
+    console.log('\n2.4. Same SQL Injection attempt with secure function:');
+    console.log(`Using: userModel.verifyUserSecure("${bypassEmail}", "wrong_password")`);
+    
+    const secureLoginResult = await userModel.verifyUserSecure(
+      bypassEmail,
+      wrongPassword
+    );
+    console.log('Result:', secureLoginResult);
+    
+    /**
+     * PART 3: SQL INJECTION IN CUSTOMER SEARCH (Section 4 in Part A)
+     * Demonstrating SQL injection in the customer search functionality
+     */
+    console.log('\n\n======= PART 3: SQL INJECTION IN CUSTOMER SEARCH =======');
+    
+    // First, make sure we have some customers to search
+    // Check if we have customers
+    const connection = await pool.getConnection();
+    const [customers] = await connection.query('SELECT COUNT(*) as count FROM customers');
     connection.release();
-    console.log('===============================');
-    console.log('SQL INJECTION TESTING COMPLETED');
-    console.log('===============================');
+    
+    if (customers[0].count === 0) {
+      console.log('\nAdding sample customers for testing...');
+      
+      // Add some test customers if none exist
+      await customerModel.createCustomerSecure({
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        phone: '555-123-4567',
+        address: '123 Main St',
+        package: 'Fiber 100Mbps'
+      });
+      
+      await customerModel.createCustomerSecure({
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane.smith@example.com',
+        phone: '555-987-6543',
+        address: '456 Elm St',
+        package: 'Premium 500Mbps'
+      });
+    }
+    
+    // 1. Normal search with secure function
+    console.log('\n3.1. Normal customer search with secure function:');
+    console.log('Using: customerModel.getCustomersSecure("John")');
+    
+    const secureSearch = await customerModel.getCustomersSecure("John");
+    displayResults('Normal search results for "John"', secureSearch);
+    
+    // 2. Normal search with vulnerable function
+    console.log('\n3.2. Normal customer search with vulnerable function:');
+    console.log('Using: customerModel.getCustomersVulnerable("John")');
+    
+    const vulnerableSearch = await customerModel.getCustomersVulnerable("John");
+    displayResults('Normal search results for "John"', vulnerableSearch);
+    
+    // 3. SQL Injection to retrieve all customers
+    console.log('\n3.3. SQL Injection to retrieve all customers:');
+    
+    const allCustomersInjection = "' OR '1'='1";
+    
+    console.log(`Using SQL injection: "${allCustomersInjection}"`);
+    console.log(`Resulting query will be: SELECT * FROM customers WHERE first_name LIKE '%${allCustomersInjection}%' OR ...`);
+    console.log("Which becomes: SELECT * FROM customers WHERE first_name LIKE '%' OR '1'='1%' OR ...");
+    
+    const allCustomersResult = await customerModel.getCustomersVulnerable(allCustomersInjection);
+    displayResults('Results with SQL injection', allCustomersResult);
+    
+    // 4. Show that the same injection fails with secure function
+    console.log('\n3.4. Same SQL Injection attempt with secure function:');
+    console.log(`Using: customerModel.getCustomersSecure("${allCustomersInjection}")`);
+    
+    const secureSearchInjection = await customerModel.getCustomersSecure(allCustomersInjection);
+    displayResults('Results with secure function', secureSearchInjection);
+    
+    // 5. SQL Injection UNION attack to extract user data
+    console.log('\n3.5. SQL Injection UNION attack to extract user data:');
+    
+    const unionInjection = "' UNION SELECT user_id, email, password_hash, salt, 'N/A', 'N/A', 'N/A' FROM users -- ";
+    
+    console.log(`Using UNION injection: "${unionInjection}"`);
+    console.log('This combines customer results with user table data, exposing sensitive information');
+    
+    const unionResult = await customerModel.getCustomersVulnerable(unionInjection);
+    displayResults('Results with UNION attack', unionResult);
+    
+    /**
+     * PART 4: STORED XSS IN CUSTOMER CREATION (Section 4 in Part A)
+     * Demonstrating stored XSS vulnerability
+     */
+    console.log('\n\n======= PART 4: STORED XSS IN CUSTOMER CREATION =======');
+    
+    // 1. Normal customer creation with secure function
+    console.log('\n4.1. Normal customer creation with secure function:');
+    
+    const normalCustomer = {
+      firstName: 'Robert',
+      lastName: 'Johnson',
+      email: 'robert.johnson@example.com',
+      phone: '555-111-2222',
+      address: '789 Oak St',
+      package: 'Basic 50Mbps'
+    };
+    
+    console.log('Using customerModel.createCustomerSecure with normal data');
+    const secureCustomerResult = await customerModel.createCustomerSecure(normalCustomer);
+    console.log('Result:', secureCustomerResult);
+    
+    // 2. Customer creation with XSS payload using vulnerable function
+    console.log('\n4.2. Customer creation with XSS payload:');
+    
+    const xssCustomer = {
+      firstName: '<script>alert("XSS Attack!");</script>',
+      lastName: 'Hacker',
+      email: 'xss.attack@example.com',
+      phone: '555-666-7777',
+      address: '123 Hack St',
+      package: 'Malicious Package'
+    };
+    
+    console.log('Using customerModel.createCustomerVulnerable with XSS payload in firstName');
+    console.log('XSS Payload: <script>alert("XSS Attack!");</script>');
+    
+    const xssCustomerResult = await customerModel.createCustomerVulnerable(xssCustomer);
+    console.log('Result:', xssCustomerResult);
+    
+    // 3. Verify XSS payload was stored
+    if (xssCustomerResult.success && xssCustomerResult.customerId) {
+      console.log('\n4.3. Verifying the XSS payload was stored:');
+      
+      const xssCustomerVerify = await customerModel.getCustomerByIdVulnerable(xssCustomerResult.customerId);
+      displayResults('Customer with XSS payload', xssCustomerVerify);
+      
+      console.log('\nXSS Attack Explanation:');
+      console.log('1. The script tag was stored directly in the database');
+      console.log('2. When this customer data is displayed in an HTML page, the script will execute');
+      console.log('3. This could be used to steal cookies, redirect users, or perform unwanted actions');
+    }
+    
+    // 4. Same XSS payload with secure function (shows encoding)
+    console.log('\n4.4. Same XSS payload with secure function:');
+    
+    console.log('Using customerModel.createCustomerSecure with the same XSS payload');
+    const secureXssResult = await customerModel.createCustomerSecure(xssCustomer);
+    console.log('Result:', secureXssResult);
+    
+    if (secureXssResult.success && secureXssResult.customerId) {
+      const secureXssVerify = await customerModel.getCustomerByIdSecure(secureXssResult.customerId);
+      displayResults('Customer with XSS payload using secure function', secureXssVerify);
+      
+      console.log('\nNote: The secure function should either:');
+      console.log('1. Encode special characters when storing data, or');
+      console.log('2. Encode special characters when rendering data to HTML');
+    }
+    
+    /**
+     * SUMMARY: PROTECTION METHODS
+     */
+    console.log('\n\n======= PROTECTION METHODS SUMMARY =======');
+    
+    console.log('\n1. Protection against SQL Injection:');
+    console.log('✅ Use parameterized queries instead of string concatenation:');
+    console.log(`
+// Vulnerable (string concatenation):
+const query = \`SELECT * FROM users WHERE email = '${bypassEmail}'\`;
+
+// Secure (parameterized query):
+const [users] = await connection.query(
+  'SELECT * FROM users WHERE email = ?', 
+  [email]
+);`);
+    
+    console.log('\n2. Protection against Stored XSS:');
+    console.log('✅ Encode special characters before storing or displaying:');
+    console.log(`
+// Encoding function example:
+function encodeHTML(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Use when displaying customer data:
+document.getElementById('customerName').innerHTML = encodeHTML(customer.firstName);`);
+    
   } catch (error) {
-    console.error('Test error:', error);
+    console.error('\nAn error occurred during testing:', error);
+  } finally {
+    // Close the connection pool
+    await pool.end();
+    console.log('\n======================================================');
+    console.log('DEMONSTRATION COMPLETED');
+    console.log('======================================================');
   }
 }
 
 // Run the tests
-testSqlInjection()
-  .then(() => {
-    console.log('All tests completed successfully.');
-    process.exit(0);
-  })
-  .catch(error => {
-    console.error('Error during testing:', error);
-    process.exit(1);
-  });
+runTests();

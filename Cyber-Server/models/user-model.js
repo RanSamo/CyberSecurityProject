@@ -7,7 +7,7 @@ const { validatePassword } = require('../utils/password-validator');
 // User-related database functions
 const userModel = {
   // Create a new user (vulnerable version for SQL injection demonstration)
-  async createUserVulnerable(username, email, password) {
+  async createUserVulnerable(email, password) {
     const connection = await pool.getConnection();
     try {
       // Validate password against configuration
@@ -25,8 +25,8 @@ const userModel = {
       const passwordHash = securityUtils.hashPassword(password, salt);
       
       // Vulnerable to SQL injection
-      const query = `INSERT INTO users (username, email, password_hash, salt) 
-                     VALUES ('${username}', '${email}', '${passwordHash}', '${salt}')`;
+      const query = `INSERT INTO users (email, password_hash, salt) 
+                     VALUES ('${email}', '${passwordHash}', '${salt}')`;
       
       const [result] = await connection.query(query);
       
@@ -46,7 +46,7 @@ const userModel = {
   },
   
   // Create a new user (secure version)
-  async createUserSecure(username, email, password) {
+  async createUserSecure(email, password) {
     const connection = await pool.getConnection();
     try {
       // Validate password against configuration
@@ -65,8 +65,8 @@ const userModel = {
       
       // Secure with parameterized queries
       const [result] = await connection.query(
-        'INSERT INTO users (username, email, password_hash, salt) VALUES (?, ?, ?, ?)',
-        [username, email, passwordHash, salt]
+        'INSERT INTO users (email, password_hash, salt) VALUES (?, ?, ?)',
+        [email, passwordHash, salt]
       );
       
       // Add password to history
@@ -124,7 +124,6 @@ const userModel = {
       return { 
         success: true,
         userId: user.user_id,
-        username: user.username,
         email: user.email
       };
     } catch (error) {
@@ -147,6 +146,11 @@ const userModel = {
       }
       
       const user = users[0];
+
+      if (user.account_locked) {
+        return { success: false, message: 'Account is locked. Please reset your password or contact support.' };
+      }
+
       const hashedPassword = securityUtils.hashPassword(password, user.salt);
       
       if (hashedPassword !== user.password_hash) {
@@ -177,7 +181,6 @@ const userModel = {
       return { 
         success: true,
         userId: user.user_id,
-        username: user.username,
         email: user.email
       };
     } catch (error) {

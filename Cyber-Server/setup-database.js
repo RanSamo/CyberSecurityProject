@@ -21,15 +21,13 @@ async function setupDatabase() {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
         user_id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(50) NOT NULL UNIQUE,
         email VARCHAR(100) NOT NULL UNIQUE,
         password_hash VARCHAR(256) NOT NULL,
         salt VARCHAR(64) NOT NULL,
         failed_login_attempts INT DEFAULT 0,
         account_locked BOOLEAN DEFAULT FALSE,
         password_reset_token VARCHAR(64),
-        password_reset_token_expiry DATETIME,
-        is_admin BOOLEAN DEFAULT FALSE
+        password_reset_token_expiry DATETIME
       )
     `);
     console.log('Users table created successfully');
@@ -47,16 +45,21 @@ async function setupDatabase() {
     `);
     console.log('Password history table created successfully');
     
-    // Create customers table (simplified without sector_id)
+    // Create customers table with user_id foreign key
+    // unique_email_per_user - ensures that a single user cannot have multiple customers with the same email
+    // but different users can have customers with the same email
     await connection.query(`
       CREATE TABLE IF NOT EXISTS customers (
         customer_id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
         first_name VARCHAR(50) NOT NULL,
         last_name VARCHAR(50) NOT NULL,
-        email VARCHAR(100) NOT NULL UNIQUE,
+        email VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
         address VARCHAR(255),  
-        package VARCHAR(255) DEFAULT NULL
+        package VARCHAR(255) DEFAULT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        UNIQUE KEY unique_email_per_user (email, user_id) 
       )
     `);
     console.log('Customers table created successfully');
@@ -64,7 +67,8 @@ async function setupDatabase() {
     // Create indexes for better performance
     try {
       await connection.query(`CREATE INDEX idx_users_email ON users(email)`);
-      console.log('Index created successfully');
+      await connection.query(`CREATE INDEX idx_customers_user_id ON customers(user_id)`);
+      console.log('Indexes created successfully');
     } catch (error) {
       if (error.code === 'ER_DUP_KEYNAME') {
         console.log('Index already exists, skipping creation');

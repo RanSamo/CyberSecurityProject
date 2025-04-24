@@ -18,11 +18,8 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Create a username from firstName (you might want a different approach)
-    const username = `${firstName.toLowerCase()}_${Date.now()}`;
-    
     // Use the secure version for production
-    const result = await userModel.createUserSecure(username, email, password);
+    const result = await userModel.createUserSecure(email, password);
     
     if (result.success) {
       res.status(201).json({ success: true, userId: result.userId });
@@ -40,6 +37,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login route
+//TODO.Add here the authentication part with jwt 
 router.post('/login', async (req, res) => {
   try {
     const { uEmail, Password } = req.body;
@@ -51,14 +49,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
     
-    // Now verify with username and password
-    const result = await userModel.verifyUserSecure(userResult.user.username, Password);
+    // Now verify with email and password
+    const result = await userModel.verifyUserSecure(userResult.user.email, Password);
     
     if (result.success) {
       res.status(200).json({ 
         success: true, 
         userId: result.userId,
-        username: result.username,
         email: result.email
       });
     } else {
@@ -82,7 +79,7 @@ router.post('/request-reset', async (req, res) => {
       message: 'If your email exists in our system, a reset token has been sent'
     });
     
-    // In a real app, you would send an email with the token
+    //TODO.Need to send an email with the token
     if (result.success && result.token) {
       console.log('Reset token for email', uEmail, ':', result.token);
       // sendResetEmail(uEmail, result.token);

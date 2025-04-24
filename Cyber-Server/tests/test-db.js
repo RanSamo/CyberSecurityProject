@@ -1,5 +1,10 @@
 //loads db.js and export testconnection function
-const { testConnection } = require('../db.js');
+const { testConnection } = require('../config/db.js');
+
+const path = require('path');
+
+// Make sure environment variables are loaded in the test file too
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 async function testDatabase() {
   console.log('Starting database test...');

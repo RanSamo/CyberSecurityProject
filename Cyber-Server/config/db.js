@@ -1,6 +1,9 @@
 //loading modules - mysql2 with promise support so we can use async/await
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+const path = require('path');
+
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
 
 // Create a connection pool - reusable pool of connections to the database (keeps the connections open and ready)
 const pool = mysql.createPool({

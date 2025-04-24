@@ -1,7 +1,5 @@
-/**
- * Configuration file for password policies
- * These settings can be modified by the system administrator
- */
+//Configuration file for password policies
+ 
 const passwordConfig = {
     // Minimum password length
     minLength: 10,

@@ -15,6 +15,7 @@ async function testXssVulnerability() {
   // Generate a unique email to avoid duplicate key errors
   const uniqueEmail = `xss.test${Date.now()}@example.com`;
   
+  //html encoder - we maybe need this to the function 
   // Test case 1: Simple script XSS payload
   try {
     console.log('STEP 1: Creating a customer with an XSS payload in the first name');

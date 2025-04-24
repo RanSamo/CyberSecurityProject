@@ -1,5 +1,5 @@
-// This is a basic implementation without JWT
-// We will use JWT soon
+//TODO.Implement the authentication with JWT
+//This is temp implementation
 const authenticateUser = (req, res, next) => {
     const userId = req.headers['user-id'];
     

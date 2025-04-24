@@ -87,38 +87,6 @@ async function validatePassword(password, userId = null) {
   }
 }
 
-// Function to update the configuration file (for administrators)
-function updatePasswordConfig(newConfig) {
-  try {
-    // In a real implementation, this would write to the config file
-    // For simplicity, we're just updating the in-memory config
-    if (newConfig.minLength !== undefined) {
-      passwordConfig.minLength = newConfig.minLength;
-    }
-    
-    if (newConfig.complexity) {
-      Object.assign(passwordConfig.complexity, newConfig.complexity);
-    }
-    
-    if (newConfig.history && newConfig.history.count !== undefined) {
-      passwordConfig.history.count = newConfig.history.count;
-    }
-    
-    if (newConfig.loginAttempts && newConfig.loginAttempts.max !== undefined) {
-      passwordConfig.loginAttempts.max = newConfig.loginAttempts.max;
-    }
-    
-    if (newConfig.dictionary) {
-      Object.assign(passwordConfig.dictionary, newConfig.dictionary);
-    }
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error updating password config:', error);
-    return { success: false, error: error.message };
-  }
-}
-
 // Get the current password configuration
 function getPasswordConfig() {
   return { ...passwordConfig };  // Return a copy to prevent direct modification
@@ -126,6 +94,5 @@ function getPasswordConfig() {
 
 module.exports = { 
   validatePassword,
-  updatePasswordConfig,
   getPasswordConfig
 };
