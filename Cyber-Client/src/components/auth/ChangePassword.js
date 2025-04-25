@@ -23,7 +23,7 @@ const ChangePassword = () => {
             return;
         }
 
-        // TODO. Create the right function for the temp password to be created
+        // TODO. Create the right function for the changePassword  to be created(Ran)
         // fetch('http://localhost:8000/blogs', {
         //     method: 'POST',
         //     headers: { "Content-Type": "application/json" },
@@ -37,42 +37,42 @@ const ChangePassword = () => {
         //navigate('/Login'); // Redirect to the forgot password page after submitting
     }
 
-    return ( 
-        <div className = "change-password">
+    return (
+        <div className="change-password">
             <h2>Change Password</h2>
             <form onSubmit={handleSubmit}>
                 <label>User's Email:</label>
                 <input type="email"
-                 required 
-                 value = {uEmail}
-                 onChange={(e) => setuEmail(e.target.value)}
-                 />
-                 <label>Current Password:</label>
-                 <input type="password"
-                 required 
-                 value = {currentPassword}
-                 onChange={(e) => setCurrentPassword(e.target.value)}
-                 />
-                 <label>New Password:</label>
-                 <input type="password"
-                 required 
-                 value = {newPassword}
-                 onChange={(e) => setNewPassword(e.target.value)}
-                 />
-                  <label> Rewrite Password:</label>
-                 <input type="password"
-                 required 
-                 value = {reNewPassword}
-                 onChange={(e) => setReNewPassword(e.target.value)}
-                 />
+                    required
+                    value={uEmail}
+                    onChange={(e) => setuEmail(e.target.value)}
+                />
+                <label>Current Password:</label>
+                <input type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+                <label>New Password:</label>
+                <input type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <label> Rewrite Password:</label>
+                <input type="password"
+                    required
+                    value={reNewPassword}
+                    onChange={(e) => setReNewPassword(e.target.value)}
+                />
                 {!isPending && <button> Submit Password Change </button>}
                 {isPending && <button disabled> Loading... </button>}
-                <div className ="login-regi" >
+                <div className="login-regi" >
                     <Link to="/register">Don't have an account? Register here</Link>
                 </div>
             </form>
         </div>
-     );
+    );
 }
- 
+
 export default ChangePassword;

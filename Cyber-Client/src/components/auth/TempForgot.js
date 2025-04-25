@@ -13,7 +13,7 @@ const TempForgot = () => {
         const userEmail = { uEmail };
         setIsPending(true);
 
-        // TODO. Create the right function for the temp password to be created
+        // TODO. Create the right function for the temp password to be created(ben)
         // fetch('http://localhost:8000/blogs', {
         //     method: 'POST',
         //     headers: { "Content-Type": "application/json" },
@@ -27,24 +27,24 @@ const TempForgot = () => {
         //navigate('/forgot'); // Redirect to the forgot password page after submitting
     }
 
-    return ( 
-        <div className = "temp-forgot">
+    return (
+        <div className="temp-forgot">
             <h2>Enter email to receive a temp password</h2>
             <form onSubmit={handleSubmit}>
                 <label>User's Email:</label>
                 <input type="email"
-                 required 
-                 value = {uEmail}
-                 onChange={(e) => setuEmail(e.target.value)}
-                 />
+                    required
+                    value={uEmail}
+                    onChange={(e) => setuEmail(e.target.value)}
+                />
                 {!isPending && <button> Send Password </button>}
                 {isPending && <button disabled> Loading... </button>}
-                <div className ="login-regi" >
+                <div className="login-regi" >
                     <Link to="/register">Don't have an account? Register here</Link>
                 </div>
             </form>
         </div>
-     );
+    );
 }
- 
+
 export default TempForgot;

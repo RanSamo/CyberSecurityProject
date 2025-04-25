@@ -20,72 +20,73 @@ const Register = () => {
             alert("Passwords do not match");
             return;
         }
-
+        //TODO. remove first+last name to fit info for backend
         // Create user object with properly named fields matching your SQL schema
-        const user = {firstName: fName, lastName: lName, password: Password, email: uEmail}; 
+        const user = { firstName: fName, lastName: lName, password: Password, email: uEmail };
 
         setIsPending(true); //set pending state to true
 
+        //TODO. Create the right call for the backend checking for user credentials(Ben)
         // Send POST request to the server
         fetch('http://localhost:8000/api/users/register', {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(user)
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('User registered successfully:', data);
-            setIsPending(false);
-            navigate('/login'); // Redirect to login page after successful registration
-        })
-        .catch(error => {
-            console.error('Error registering user:', error);
-            setIsPending(false);
-            alert('Failed to register user. Please try again.');
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('User registered successfully:', data);
+                setIsPending(false);
+                navigate('/login'); // Redirect to login page after successful registration
+            })
+            .catch(error => {
+                console.error('Error registering user:', error);
+                setIsPending(false);
+                alert('Failed to register user. Please try again.');
+            });
     }
 
-    return ( 
+    return (
         <div className="register">
             <h2>Create a new user</h2>
             <form onSubmit={handleSubmit}>
                 <label>First Name:</label>
-                <input 
+                <input
                     type="text"
-                    required 
+                    required
                     value={fName}
                     onChange={(e) => setfName(e.target.value)}
                 />
                 <label>Last Name:</label>
-                <input 
+                <input
                     type="text"
-                    required 
+                    required
                     value={lName}
                     onChange={(e) => setlName(e.target.value)}
                 />
                 <label>Strong Password:</label>
-                <input 
-                    type="password" 
-                    required 
+                <input
+                    type="password"
+                    required
                     value={Password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
                 <label>Rewrite Password:</label>
-                <input 
-                    type="password" 
-                    required 
+                <input
+                    type="password"
+                    required
                     value={rePassword}
                     onChange={(e) => setrePassword(e.target.value)}
                 />
                 <label>User's Email:</label>
-                <input 
-                    type="email" 
-                    required 
+                <input
+                    type="email"
+                    required
                     value={uEmail}
                     onChange={(e) => setuEmail(e.target.value)}
                 />
@@ -95,5 +96,5 @@ const Register = () => {
         </div>
     );
 }
- 
+
 export default Register;

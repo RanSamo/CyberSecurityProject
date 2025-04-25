@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './SystemPage.css';
 
 
-// TODO. need to modify the client fields- first name, last name, phone number, address, email, package
+// TODO. need to modify the client fields- first name, last name, phone number, address, email, package(Ran)
 
 
 const SystemPage = () => {

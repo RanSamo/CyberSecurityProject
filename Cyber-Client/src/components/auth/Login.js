@@ -14,7 +14,7 @@ const Login = () => {
         const user = { uEmail, Password };
         setIsPending(true);
 
-        // TODO. Create the right call for the backend checking for user credentials
+        // TODO. Create the right call for the backend checking for user credentials(Ben)
         // fetch('http://localhost:8000/blogs', {
         //     method: 'POST',
         //     headers: { "Content-Type": "application/json" },
@@ -27,34 +27,34 @@ const Login = () => {
         // });
     }
 
-    return ( 
-        <div className = "login">
+    return (
+        <div className="login">
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>
                 <label>Email:</label>
                 <input type="email"
-                 required 
-                 value = {uEmail}
-                 onChange={(e) => setuEmail(e.target.value)}
-                 />
-                 <label>Password:</label>
-                 <input type="password"
-                 required 
-                 value = {Password}
-                 onChange={(e) => setPassword(e.target.value)}
-                 />
-                 
-                 <div className = "forgot-password-link">
+                    required
+                    value={uEmail}
+                    onChange={(e) => setuEmail(e.target.value)}
+                />
+                <label>Password:</label>
+                <input type="password"
+                    required
+                    value={Password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <div className="forgot-password-link">
                     <Link to="/TempForgot">Forgot Password?</Link>
-                 </div>
+                </div>
                 {!isPending && <button> Login </button>}
                 {isPending && <button disabled> Loading... </button>}
-                <div className ="login-regi" >
+                <div className="login-regi" >
                     <Link to="/register">Don't have an account? Register here</Link>
                 </div>
             </form>
         </div>
-     );
+    );
 }
- 
+
 export default Login;
