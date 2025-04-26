@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { data, Link, useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import AuthContext from './AuthContext'; 
 import './Login.css'; // Import the CSS file
 
 const Login = () => {
+    const { login } = useContext(AuthContext); // Get the Login function from AuthContext
     const [Password, setPassword] = useState(''); //password
     const [uEmail, setuEmail] = useState(''); //user email
     const [isPending, setIsPending] = useState(false); //pending state
@@ -14,17 +17,29 @@ const Login = () => {
         const user = { uEmail, Password };
         setIsPending(true);
 
-        // TODO. Create the right call for the backend checking for user credentials(Ben)
-        // fetch('http://localhost:8000/blogs', {
-        //     method: 'POST',
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify(user)
-        // })
-        // .then(() => {
-        //     console.log('New blog added');
-        //     setIsPending(false);
-        //     navigate('/'); // Redirect to the home page after adding the blog
-        // });
+        // Create the right call for the backend checking for user credentials(Ran did instead of Ben, my bad.)
+        fetch('http://localhost:8000/login', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(user)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('User Logged in successfully:', data);
+                login(data.user); // Call the login function from AuthContext
+                setIsPending(false);
+                navigate('/'); // Redirect to home page after successful login 
+            } else{
+                console.error('Error logging in user:', data.message);
+                setIsPending(false);
+                alert('Failed to log in. Please check your credentials.');
+            }
+        })
+        .catch(error => {
+            console.error('Error logging in user:', error);
+        });
+        
     }
 
     return (

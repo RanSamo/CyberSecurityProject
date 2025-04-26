@@ -8,9 +8,11 @@ import Login from './components/auth/Login';
 import TempForgot from './components/auth/TempForgot';
 import ChangePassword from './components/auth/ChangePassword';
 import SystemPage from './components/general/SystemPage';
+import { AuthProvider } from './components/auth/AuthContext'; // Import AuthProvider
 
 function App() {
   return (
+    <AuthProvider> {/* Wrap the entire app with AuthProvider */}
     <Router>
       <div className="App">
         <Navbar />
@@ -28,6 +30,7 @@ function App() {
         <Footer />
       </div>
     </Router>
+    </AuthProvider> // Close AuthProvider
   );
 }
 
