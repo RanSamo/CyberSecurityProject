@@ -6,7 +6,7 @@ const { validatePassword } = require('../utils/password-validator');
 // Register new user
 router.post('/register', async (req, res) => {
   try {
-    const { firstName, lastName, password, email } = req.body;
+    const {fname, lname, uEmail, password } = req.body;
     
     // Validate the password against configuration requirements
     const validationResult = await validatePassword(password);
@@ -19,7 +19,7 @@ router.post('/register', async (req, res) => {
     }
     
     // Use the secure version for production
-    const result = await userModel.createUserSecure(email, password);
+    const result = await userModel.createUserSecure(fname,lname, uEmail, password);
     
     if (result.success) {
       res.status(201).json({ success: true, userId: result.userId });
@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
 //TODO.Add here the authentication part with jwt 
 router.post('/login', async (req, res) => {
   try {
-    const { uEmail, Password } = req.body;
+    const { uEmail, password } = req.body;
     
     // First find user by email
     const userResult = await userModel.findUserByEmail(uEmail);
@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
     }
     
     // Now verify with email and password
-    const result = await userModel.verifyUserSecure(userResult.user.email, Password);
+    const result = await userModel.verifyUserSecure(uEmail, password);
     
     if (result.success) {
       res.status(200).json({ 
@@ -108,6 +108,7 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+//Temp implementation
 // Change password (requires authentication in a real app)
 router.post('/change-password', async (req, res) => {
   try {
