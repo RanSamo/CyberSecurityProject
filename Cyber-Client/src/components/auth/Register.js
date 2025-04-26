@@ -12,44 +12,60 @@ const Register = () => {
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
 
 
-    const handleSubmit = (e) => {
-        e.preventDefault(); //prevent default form submission
+    //TODO. Create the right call for the backend checking for user credentials(Ben)
+    //TODO. remove first+last name to fit info for backend
 
-        // Validate passowords match before submitting
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
         if (Password !== rePassword) {
             alert("Passwords do not match");
             return;
         }
-        //TODO. remove first+last name to fit info for backend
-        // Create user object with properly named fields matching your SQL schema
-        const user = { firstName: fName, lastName: lName, password: Password, email: uEmail };
 
-        setIsPending(true); //set pending state to true
+        const user = {
+            firstName: fName,
+            lastName: lName,
+            email: uEmail,
+            password: Password,
+        };
 
-        //TODO. Create the right call for the backend checking for user credentials(Ben)
-        // Send POST request to the server
+        setIsPending(true);
+
+        console.log("📤 Sending registration data:", JSON.stringify(user));
+
         fetch('http://localhost:8000/api/users/register', {
             method: 'POST',
-            headers: { "Content-Type": "application/json" },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(user)
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                console.log('User registered successfully:', data);
-                setIsPending(false);
-                navigate('/login'); // Redirect to login page after successful registration
+                console.log("📥 Server response:", data);
+
+                if (data.success) {
+                    console.log('✅ Registration successful');
+                    navigate('/login');
+                } else {
+                    alert(data.message || 'Registration failed');
+                }
             })
-            .catch(error => {
-                console.error('Error registering user:', error);
+            .catch(err => {
+                console.warn("⚠️ Server not available, simulating response...");
+                const fakeResponse = {
+                    success: true,
+                    userId: 101,
+                    email: uEmail
+                };
+                console.log("📥 Simulated response:", fakeResponse);
+                alert("Simulated registration complete");
+                navigate('/login');
+            })
+            .finally(() => {
                 setIsPending(false);
-                alert('Failed to register user. Please try again.');
             });
-    }
+    };
+
 
     return (
         <div className="register">
