@@ -1,0 +1,30 @@
+/* Footer.css */
+.footerWrapper {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    /* מרכז את התוכן הפנימי */
+    z-index: 100;
+
+}
+
+.footerInner {
+    width: 41%;
+    max-width: 1100px;
+    /* אותו רוחב כמו ה-Navbar */
+    padding: 12px 24px;
+    /* padding צדדי כמו ב-Navbar, גובה קטן יותר */
+    background-color: #04265a;
+    color: #fff;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 0.85rem;
+    height: 32px;
+    /* גובה מעט קצר יותר */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}

@@ -1,0 +1,76 @@
+/* Register.css - Blue theme styling for registration form */
+
+.register {
+    max-width: 500px;
+    margin: 50px auto 0; /* This pushes the form down from the navbar */
+    padding: 20px;
+    background-color: #f0f8ff; /* Light blue background */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+  }
+  
+  .register h2 {
+    color: #000080; /* Dark blue color for heading */
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .register form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .register label {
+    margin-top: 12px;
+    margin-bottom: 5px;
+    color: #2c5282; /* Medium blue for labels */
+    font-weight: bold;
+  }
+  
+  .register input {
+    padding: 10px;
+    border: 1px solid #a0aec0; /* Light blue-gray border */
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 10px;
+    transition: border-color 0.3s;
+  }
+  
+  .register input:focus {
+    outline: none;
+    border-color: #3182ce; /* Bright blue when focused */
+    box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+  }
+  
+  .register button {
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #000080; /* Navy blue */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .register button:hover {
+    background-color: white;
+    color: #000080; /* Navy blue text on hover */
+    border: 1px solid #000080;
+  }
+  
+  .register button:disabled {
+    background-color: #a0aec0; /* Light blue-gray when disabled */
+    cursor: not-allowed;
+    color: #e2e8f0;
+  }
+  
+  /* Error message styling if needed later */
+  .error {
+    color: #e53e3e;
+    margin-top: 5px;
+    font-size: 14px;
+  }

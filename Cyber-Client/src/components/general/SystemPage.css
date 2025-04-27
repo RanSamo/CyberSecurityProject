@@ -1,0 +1,137 @@
+/* SystemPage.css - Updated to match Register.css styling */
+
+.welcome-message {
+  text-align: center;
+  color: #2c5282;
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+.system-page {
+  max-width: 500px;
+  margin: 50px auto 0; /* Match register's top margin */
+  padding: 20px;
+  background-color: #f0f8ff; /* Light blue background */
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+.system-page h2 {
+  color: #000080; /* Dark blue color for heading to match register */
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.add-client-section h3 {
+  color: #000080;
+  margin-bottom: 20px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.add-client-section form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Direct styling for label and inputs, no form-group */
+.add-client-section label {
+  margin-top: 12px;
+  margin-bottom: 5px;
+  color: #2c5282; /* Medium blue for labels */
+  font-weight: bold;
+}
+
+.add-client-section input, 
+.add-client-section select {
+  padding: 10px;
+  border: 1px solid #a0aec0; /* Light blue-gray border */
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.3s;
+}
+
+.add-client-section input:focus,
+.add-client-section select:focus {
+  outline: none;
+  border-color: #3182ce; /* Bright blue when focused */
+  box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+}
+
+/* Select styling */
+.add-client-section select {
+  padding: 10px;
+  background-color: white;
+  cursor: pointer;
+  appearance: none; /* Removes default browser styling */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+.add-client-section button {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #000080; /* Navy blue */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.add-client-section button:hover {
+  background-color: white;
+  color: #000080; /* Navy blue text on hover */
+  border: 1px solid #000080;
+}
+
+.add-client-section button:disabled {
+  background-color: #a0aec0; /* Light blue-gray when disabled */
+  cursor: not-allowed;
+  color: #e2e8f0;
+}
+
+/* Confirmation message styling - keeping but made consistent with register style */
+.confirmation-message {
+  background-color: #ebf8ff;
+  border-left: 4px solid #4299e1;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.confirmation-message h3 {
+  color: #000080;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.client-details {
+  background-color: white;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.client-details p {
+  margin-bottom: 10px;
+  color: #4a5568;
+}
+
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: translateY(-10px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}

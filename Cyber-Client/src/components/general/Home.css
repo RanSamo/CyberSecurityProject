@@ -1,0 +1,166 @@
+/* Home.css - Styling for the Home component */
+
+.home {
+    max-width: 1000px; /* Increased from 600px to accommodate the table */
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* Styling for authenticated user view */
+  .home-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .home-header h2 {
+    color: #000080;
+    margin-bottom: 10px;
+  }
+  
+  .client-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+  }
+  
+  .add-client-btn, .refresh-btn {
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .add-client-btn {
+    background-color: #000080;
+    color: white;
+    text-decoration: none;
+    border: 1px solid #000080;
+  }
+  
+  .add-client-btn:hover {
+    background-color: white;
+    color: #000080;
+  }
+  
+  .refresh-btn {
+    background-color: #f0f8ff;
+    color: #2c5282;
+    border: 1px solid #a0aec0;
+  }
+  
+  .refresh-btn:hover {
+    background-color: #e6f0ff;
+  }
+  
+  .refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .error-message {
+    background-color: #fff5f5;
+    color: #c53030;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border-left: 4px solid #c53030;
+  }
+  
+  .loading {
+    text-align: center;
+    margin: 30px 0;
+    color: #2c5282;
+    font-style: italic;
+  }
+  
+  /* Client table styling */
+  .client-table-container {
+    overflow-x: auto; /* For horizontal scrolling on small screens */
+    margin-top: 20px;
+  }
+  
+  .client-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .client-table th, 
+  .client-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .client-table th {
+    background-color: #f0f8ff;
+    color: #2c5282;
+    font-weight: bold;
+  }
+  
+  .client-table tr:hover {
+    background-color: #f8fafc;
+  }
+  
+  .no-clients {
+    text-align: center;
+    margin: 40px 0;
+    padding: 30px;
+    background-color: #f0f8ff;
+    border-radius: 8px;
+    color: #2c5282;
+  }
+  
+  /* Styling for non-authenticated user view */
+  .welcome-container {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  
+  .welcome-container h2 {
+    color: #000080;
+    margin-bottom: 20px;
+  }
+  
+  .welcome-container p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  
+  .auth-buttons {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .auth-btn {
+    padding: 10px 25px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+  
+  .login-btn {
+    background-color: #000080;
+    color: white;
+    border: 1px solid #000080;
+  }
+  
+  .login-btn:hover {
+    background-color: white;
+    color: #000080;
+  }
+  
+  .register-btn {
+    background-color: white;
+    color: #000080;
+    border: 1px solid #000080;
+  }
+  
+  .register-btn:hover {
+    background-color: #f0f8ff;
+  }

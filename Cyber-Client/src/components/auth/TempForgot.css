@@ -1,0 +1,84 @@
+/* TempForgot.css - designed to work with your existing TempForgot.js structure */
+
+/* Create a wrapper for vertical centering */
+.temp-forgot {
+    max-width: 400px;
+    margin: 100px auto 0; /* This pushes the form down from the navbar */
+    padding: 30px;
+    background-color: #f0f8ff; /* Light blue background */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+  }
+  
+  .temp-forgot h2 {
+    color: #1a365d; /* Dark blue color for heading */
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 24px;
+  }
+  
+  .temp-forgot form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .temp-forgot label {
+    margin-top: 12px;
+    margin-bottom: 8px;
+    color: #2c5282; /* Medium blue for labels */
+    font-weight: bold;
+  }
+  
+  .temp-forgot input {
+    padding: 12px;
+    border: 1px solid #a0aec0; /* Light blue-gray border */
+    border-radius: 4px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    transition: border-color 0.3s;
+  }
+  
+  .temp-forgot input:focus {
+    outline: none;
+    border-color: #3182ce; /* Bright blue when focused */
+    box-shadow: 0 0 0 2px rgba(49, 130, 206, 0.2);
+  }
+  
+  .temp-forgot button {
+    margin-top: 15px;
+    padding: 14px;
+    background-color: #000080; /* Navy blue */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .temp-forgot button:hover {
+    background-color: white;
+    color: #000080; /* Navy blue text on hover */
+    border: 1px solid #000080;
+  }
+  
+  .temp-forgot button:disabled {
+    background-color: #a0aec0; /* Light blue-gray when disabled */
+    cursor: not-allowed;
+    color: #e2e8f0;
+  }
+  
+  .login-regi {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .login-regi a {
+    color: #3182ce;
+    text-decoration: none;
+  }
+  
+  .login-regi a:hover {
+    text-decoration: underline;
+  }
