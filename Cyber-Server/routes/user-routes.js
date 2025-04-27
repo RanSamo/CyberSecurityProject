@@ -6,7 +6,7 @@ const { validatePassword } = require('../utils/password-validator');
 // Register new user
 router.post('/register', async (req, res) => {
   try {
-    const {fname, lname, uEmail, password } = req.body;
+    const {firstName, lastName, uEmail, password } = req.body;
     
     // Validate the password against configuration requirements
     const validationResult = await validatePassword(password);
@@ -19,7 +19,7 @@ router.post('/register', async (req, res) => {
     }
     
     // Use the secure version for production
-    const result = await userModel.createUserSecure(fname,lname, uEmail, password);
+    const result = await userModel.createUserSecure(firstName,lastName, uEmail, password);
     
     if (result.success) {
       res.status(201).json({ success: true, userId: result.userId });

@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const { testConnection } = require('./config/db');
 const userRoutes = require('./routes/user-routes');
-const customerRoutes = require('./routes/customer-routes');
+const systemRoutes = require('./routes/system-routes');
+const clientRoutes = require('./routes/client-routes')
 require('dotenv').config();
 
 const app = express();
@@ -16,8 +17,10 @@ app.use(express.json());
 testConnection();
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/customers', customerRoutes);
+app.use('/users', userRoutes);
+app.use('/clients', clientRoutes);
+app.use('/system', systemRoutes); 
+
 
 // Basic route for testing
 app.get('/', (req, res) => {
