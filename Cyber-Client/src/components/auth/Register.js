@@ -7,7 +7,7 @@ const Register = () => {
     const [lName, setlName] = useState(''); //last name
     const [Password, setPassword] = useState(''); //password
     const [rePassword, setrePassword] = useState(''); //re-enter password
-    const [uEmail, setuEmail] = useState(''); //user email
+    const [email, setuEmail] = useState(''); //user email
     const [isPending, setIsPending] = useState(false); //pending state
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
 
@@ -26,7 +26,7 @@ const Register = () => {
         const user = {
             firstName: fName,
             lastName: lName,
-            email: uEmail,
+            uEmail: email,
             password: Password,
         };
 
@@ -55,7 +55,7 @@ const Register = () => {
                 const fakeResponse = {
                     success: true,
                     userId: 101,
-                    email: uEmail
+                    uEmail: email
                 };
                 console.log("📥 Simulated response:", fakeResponse);
                 alert("Simulated registration complete");
@@ -103,7 +103,7 @@ const Register = () => {
                 <input
                     type="email"
                     required
-                    value={uEmail}
+                    value={email}
                     onChange={(e) => setuEmail(e.target.value)}
                 />
                 {!isPending && <button>Register</button>}
