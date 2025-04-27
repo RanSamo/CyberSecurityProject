@@ -26,18 +26,26 @@ export const AuthProvider = ({ children }) => {
 
     // Check if the user is already logged in when the app loads
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser){
-            setUser(JSON.parse(storedUser));
-            setIsLoggedIn(true);
+        try {
+            const storedUser = localStorage.getItem("user");
+            // Only parse if storedUser is not null/undefined and not the string "undefined"
+            if (storedUser && storedUser !== "undefined") {
+                const userData = JSON.parse(storedUser);
+                setUser(userData);
+                setIsLoggedIn(true);
+            }
+        } catch (error) {
+            console.error("Error parsing user data from localStorage:", error);
+            // Clean up corrupted data
+            localStorage.removeItem("user");
         }
     }, []);
 
     return (
-        <AuthContext.Provider value = {{ isLoggedIn, user, login, logout }}>
+        <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
             {children}
         </AuthContext.Provider>
-        );
+    );
 };
 
 export default AuthContext;

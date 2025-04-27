@@ -7,14 +7,15 @@ import './Login.css'; // Import the CSS file
 const Login = () => {
     const { login } = useContext(AuthContext); // Get the Login function from AuthContext
     const [password, setPassword] = useState(''); //password
-    const [uEmail, setuEmail] = useState(''); //user email
+    const [email, setuEmail] = useState(''); //user email
     const [isPending, setIsPending] = useState(false); //pending state
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const user = { uEmail, password };
+        const user = { uEmail : email, password: password };
+        console.log(user);
         setIsPending(true);
 
         // Create the right call for the backend checking for user credentials(Ran did instead of Ben, my bad.)
@@ -49,7 +50,7 @@ const Login = () => {
                 <label>Email:</label>
                 <input type="email"
                     required
-                    value={uEmail}
+                    value={email}
                     onChange={(e) => setuEmail(e.target.value)}
                 />
                 <label>Password:</label>

@@ -14,7 +14,7 @@ const Navbar = () => {
       <div className="links">
         {isLoggedIn ? (
           <>
-            <span className="welcome">Hello, {user.uEmail}</span>
+            <span className="welcome">Hello, {user?.uEmail || 'user'}</span>
             <Link to="/change-password">Change Password</Link>
             <button onClick={logout} className="logout-btn">Logout</button>
           </>
