@@ -14,18 +14,32 @@ const Login = () => {
         const user = { uEmail, Password };
         setIsPending(true);
 
-        // TODO. Create the right call for the backend checking for user credentials(Ben)
-        // fetch('http://localhost:8000/blogs', {
-        //     method: 'POST',
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify(user)
-        // })
-        // .then(() => {
-        //     console.log('New blog added');
-        //     setIsPending(false);
-        //     navigate('/'); // Redirect to the home page after adding the blog
-        // });
+        console.log("📤 Sending user data:", JSON.stringify(user));
+
+        fetch('http://localhost:8000/login', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(user)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('User Logged in successfully:', data);
+                    // login(data.user); // Call the login function from AuthContext(ran in charge)
+                    setIsPending(false);
+                    navigate('/'); // Redirect to home page after successful login 
+                } else {
+                    console.error('Error logging in user:', data.message);
+                    setIsPending(false);
+                    alert('Failed to log in. Please check your credentials.');
+                }
+            })
+            .catch(error => {
+                console.error('Error logging in user:', error);
+            });
+
     }
+
 
     return (
         <div className="login">
