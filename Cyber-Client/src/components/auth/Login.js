@@ -6,7 +6,7 @@ import './Login.css'; // Import the CSS file
 
 const Login = () => {
     const { login } = useContext(AuthContext); // Get the Login function from AuthContext
-    const [Password, setPassword] = useState(''); //password
+    const [password, setPassword] = useState(''); //password
     const [uEmail, setuEmail] = useState(''); //user email
     const [isPending, setIsPending] = useState(false); //pending state
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
@@ -14,11 +14,11 @@ const Login = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const user = { uEmail, Password };
+        const user = { uEmail, password };
         setIsPending(true);
 
         // Create the right call for the backend checking for user credentials(Ran did instead of Ben, my bad.)
-        fetch('http://localhost:8000/login', {
+        fetch('http://localhost:8000/users/login', {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(user)
@@ -55,7 +55,7 @@ const Login = () => {
                 <label>Password:</label>
                 <input type="password"
                     required
-                    value={Password}
+                    value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
 

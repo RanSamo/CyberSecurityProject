@@ -24,7 +24,7 @@ const Home = () => {
         const userEmail = user?.uEmail;
 
         // Include user identifier in query params
-        fetch(`http://localhost:8000/api/clients?userEmail=${encodeURIComponent(userEmail)}`, {
+        fetch(`http://localhost:8000/clients?userEmail=${encodeURIComponent(userEmail)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
