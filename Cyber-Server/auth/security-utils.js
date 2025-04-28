@@ -1,3 +1,4 @@
+//Function creates a temporary password
 function generateTemporaryPassword(length = 8) {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let tempPassword = '';
