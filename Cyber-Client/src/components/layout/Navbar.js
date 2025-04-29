@@ -14,7 +14,8 @@ const Navbar = () => {
       <div className="links">
         {isLoggedIn ? (
           <>
-            <span className="welcome">Hello, {user?.uEmail || 'user'}</span>
+          /* TODO. need to get the full name of the user from the backend and display it here. */
+            <span className="welcome">Hello, {user?.email || 'user'}</span>
             <Link to="/change-password">Change Password</Link>
             <button onClick={logout} className="logout-btn">Logout</button>
           </>

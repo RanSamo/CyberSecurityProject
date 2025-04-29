@@ -11,12 +11,16 @@ async function testImplementation() {
     // 1. Test user registration
     console.log('\n=== Testing user registration ===');
     const testUser = {
+      firstName: 'Test',
+      lastName: 'User',
       email: `testuser${Math.floor(Math.random() * 1000)}@example.com`,
       password: 'Test@0505555555'
     };
     
     console.log('Creating a new user...');
     const createResult = await userModel.createUserSecure(
+      testUser.firstName,
+      testUser.lastName,
       testUser.email, 
       testUser.password
     );
@@ -144,11 +148,15 @@ async function testImplementation() {
     
     // Create a second user
     const secondUser = {
+      firstName: 'Second',
+      lastName: 'User',
       email: `seconduser${Math.floor(Math.random() * 1000)}@example.com`,
       password: 'Second@Pass123'
     };
     
     const createSecondUserResult = await userModel.createUserSecure(
+      secondUser.firstName,
+      secondUser.lastName,
       secondUser.email, 
       secondUser.password
     );

@@ -21,7 +21,7 @@ const Home = () => {
         setError(null);
 
         // Get user email to identify which clients to fetch
-        const userEmail = user?.uEmail;
+        const userEmail = user?.email; 
 
         // Include user identifier in query params
         fetch(`http://localhost:8000/clients?userEmail=${encodeURIComponent(userEmail)}`, {
@@ -54,7 +54,8 @@ const Home = () => {
             {isLoggedIn ? (
                 <>
                     <div className="home-header">
-                        <h2>Welcome back, {user.uEmail}!</h2>
+                    /* TODO. need to get the full name of the user from the backend and display it here. */
+                        <h2>Welcome back, {user.email}!</h2> 
                         <p>Manage your client database below</p>
                     </div>
 
