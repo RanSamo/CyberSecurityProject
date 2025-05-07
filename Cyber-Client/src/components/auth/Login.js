@@ -11,7 +11,7 @@ const Login = () => {
     const [isPending, setIsPending] = useState(false); //pending state
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
 
-
+// TODO. need to modify the BE to return the userId, firstName, lastName and email in the response.
     const handleSubmit = (e) => {
         e.preventDefault();
         const user = { uEmail : email, password: password };
@@ -28,18 +28,24 @@ const Login = () => {
         .then(data => {
             if (data.success) {
                 console.log('User Logged in successfully:', data);
-                login(data.user); // Call the login function from AuthContext
+                
+                // Create a user object with the structure your frontend expects
+                const userData = {
+                    id: data.userId,
+                    fname: data.firstName, // Use the first name from response
+                    lname: data.lastName, // Use the last name from response
+                    fullName: `${data.firstName} ${data.lastName}`, // Combine first and last name
+                    email: data.email,  // Use the email from response
+                };
+                login(userData); // Pass the structured user data to AuthContext
                 setIsPending(false);
                 navigate('/'); // Redirect to home page after successful login 
-            } else{
+            } else {
                 console.error('Error logging in user:', data.message);
                 setIsPending(false);
                 alert('Failed to log in. Please check your credentials.');
             }
         })
-        .catch(error => {
-            console.error('Error logging in user:', error);
-        });
         
     }
 
