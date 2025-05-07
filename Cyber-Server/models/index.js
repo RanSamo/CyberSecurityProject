@@ -1,6 +1,6 @@
 // Import all models and utilities
 const userModel = require('./user-model');
-const customerModel = require('./customer-model');
+const clientModel = require('./client-model');
 const securityUtils = require('../utils/security-utils');
 const passwordConfig = require('../config/password-config');
 const { validatePassword, getPasswordConfig } = require('../utils/password-validator');
@@ -9,7 +9,7 @@ const { validatePassword, getPasswordConfig } = require('../utils/password-valid
 module.exports = {
   // Models
   userModel,
-  customerModel,
+  clientModel,
   
   // Security utilities
   security: securityUtils,
