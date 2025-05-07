@@ -7,82 +7,82 @@ const { validatePassword } = require('../utils/password-validator');
 // User-related database functions
 const userModel = {
   // Create a new user (vulnerable version for SQL injection demonstration)
-async createUserVulnerable(fname, lname, uEmail, password) {
-  const connection = await pool.getConnection();
-  try {
-    // Validate password against configuration
-    const validationResult = await validatePassword(password);
-    if (!validationResult.valid) {
-      return { 
-        success: false, 
-        message: 'Password does not meet requirements', 
-        errors: validationResult.errors 
-      };
+  async createUserVulnerable(fname, lname, uEmail, password) {
+    const connection = await pool.getConnection();
+    try {
+      // Validate password against configuration
+      const validationResult = await validatePassword(password);
+      if (!validationResult.valid) {
+        return { 
+          success: false, 
+          message: 'Password does not meet requirements', 
+          errors: validationResult.errors 
+        };
+      }
+      
+      // Generate salt and hash - note the await for async hashPassword
+      const salt = securityUtils.generateSalt();
+      const passwordHash = await securityUtils.hashPassword(password, salt);
+      
+      // Vulnerable to SQL injection
+      const query = `INSERT INTO users (first_name, last_name, email, password_hash, salt) 
+                    VALUES ('${fname}', '${lname}', '${uEmail}', '${passwordHash}', '${salt}')`;
+      
+      const [result] = await connection.query(query);
+      
+      // Add password to history
+      await connection.query(
+        `INSERT INTO password_history (user_id, password_hash, salt) 
+        VALUES (${result.insertId}, '${passwordHash}', '${salt}')`
+      );
+      
+      return { success: true, userId: result.insertId };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
     }
-    
-    // Generate salt and hash
-    const salt = securityUtils.generateSalt();
-    const passwordHash = securityUtils.hashPassword(password, salt);
-    
-    // Vulnerable to SQL injection
-    const query = `INSERT INTO users (first_name, last_name, email, password_hash, salt) 
-                   VALUES ('${fname}', '${lname}', '${uEmail}', '${passwordHash}', '${salt}')`;
-    
-    const [result] = await connection.query(query);
-    
-    // Add password to history
-    await connection.query(
-      `INSERT INTO password_history (user_id, password_hash, salt) 
-       VALUES (${result.insertId}, '${passwordHash}', '${salt}')`
-    );
-    
-    return { success: true, userId: result.insertId };
-  } catch (error) {
-    console.error('Error creating user:', error);
-    return { success: false, error: error.message };
-  } finally {
-    connection.release();
-  }
-},
+  },
 
-// Create a new user (secure version)
-async createUserSecure(fname, lname, uEmail, password) {
-  const connection = await pool.getConnection();
-  try {
-    // Validate password against configuration
-    const validationResult = await validatePassword(password);
-    if (!validationResult.valid) {
-      return { 
-        success: false, 
-        message: 'Password does not meet requirements', 
-        errors: validationResult.errors 
-      };
+  // Create a new user (secure version)
+  async createUserSecure(fname, lname, uEmail, password) {
+    const connection = await pool.getConnection();
+    try {
+      // Validate password against configuration
+      const validationResult = await validatePassword(password);
+      if (!validationResult.valid) {
+        return { 
+          success: false, 
+          message: 'Password does not meet requirements', 
+          errors: validationResult.errors 
+        };
+      }
+      
+      // Generate salt and hash - note the await for async hashPassword
+      const salt = securityUtils.generateSalt();
+      const passwordHash = await securityUtils.hashPassword(password, salt);
+      
+      // Secure with parameterized queries
+      const [result] = await connection.query(
+        'INSERT INTO users (first_name, last_name, email, password_hash, salt) VALUES (?, ?, ?, ?, ?)',
+        [fname, lname, uEmail, passwordHash, salt]
+      );
+      
+      // Add password to history
+      await connection.query(
+        'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
+        [result.insertId, passwordHash, salt]
+      );
+      
+      return { success: true, userId: result.insertId };
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
     }
-    
-    // Generate salt and hash
-    const salt = securityUtils.generateSalt();
-    const passwordHash = securityUtils.hashPassword(password, salt);
-    
-    // Secure with parameterized queries
-    const [result] = await connection.query(
-      'INSERT INTO users (first_name, last_name, email, password_hash, salt) VALUES (?, ?, ?, ?, ?)',
-      [fname, lname, uEmail, passwordHash, salt]
-    );
-    
-    // Add password to history
-    await connection.query(
-      'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
-      [result.insertId, passwordHash, salt]
-    );
-    
-    return { success: true, userId: result.insertId };
-  } catch (error) {
-    console.error('Error creating user:', error);
-    return { success: false, error: error.message };
-  } finally {
-    connection.release();
-  }
-},
+  },
   
   // Verify user login (vulnerable version)
   async verifyUserVulnerable(email, password) {
@@ -97,9 +97,11 @@ async createUserSecure(fname, lname, uEmail, password) {
       }
       
       const user = users[0];
-      const hashedPassword = securityUtils.hashPassword(password, user.salt);
       
-      if (hashedPassword !== user.password_hash) {
+      // Use verifyPassword instead of direct comparison
+      const passwordValid = await securityUtils.verifyPassword(password, user.password_hash, user.salt);
+      
+      if (!passwordValid) {
         // Update failed login attempts
         await connection.query(
           `UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE user_id = ${user.user_id}`
@@ -151,9 +153,10 @@ async createUserSecure(fname, lname, uEmail, password) {
         return { success: false, message: 'Account is locked. Please reset your password or contact support.' };
       }
 
-      const hashedPassword = securityUtils.hashPassword(password, user.salt);
+      // Use verifyPassword instead of direct comparison
+      const passwordValid = await securityUtils.verifyPassword(password, user.password_hash, user.salt);
       
-      if (hashedPassword !== user.password_hash) {
+      if (!passwordValid) {
         // Update failed login attempts
         await connection.query(
           'UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE user_id = ?',
@@ -204,9 +207,9 @@ async createUserSecure(fname, lname, uEmail, password) {
       
       const user = users[0];
       
-      // Verify current password
-      const hashedCurrentPassword = securityUtils.hashPassword(currentPassword, user.salt);
-      if (hashedCurrentPassword !== user.password_hash) {
+      // Verify current password using verifyPassword
+      const passwordValid = await securityUtils.verifyPassword(currentPassword, user.password_hash, user.salt);
+      if (!passwordValid) {
         return { success: false, message: 'Current password is incorrect' };
       }
       
@@ -222,7 +225,7 @@ async createUserSecure(fname, lname, uEmail, password) {
       
       // Generate new salt and hash
       const newSalt = securityUtils.generateSalt();
-      const newPasswordHash = securityUtils.hashPassword(newPassword, newSalt);
+      const newPasswordHash = await securityUtils.hashPassword(newPassword, newSalt);
       
       // Check password history
       const historyCount = passwordConfig.history.count;
@@ -231,9 +234,10 @@ async createUserSecure(fname, lname, uEmail, password) {
         [userId, historyCount]
       );
       
+      // Check against password history
       for (const item of history) {
-        const historicalHash = securityUtils.hashPassword(newPassword, item.salt);
-        if (historicalHash === item.password_hash) {
+        const historicalMatch = await securityUtils.verifyPassword(newPassword, item.password_hash, item.salt);
+        if (historicalMatch) {
           return { success: false, message: `Cannot reuse one of your last ${historyCount} passwords` };
         }
       }
@@ -325,7 +329,7 @@ async createUserSecure(fname, lname, uEmail, password) {
       
       // Generate new salt and hash
       const newSalt = securityUtils.generateSalt();
-      const newPasswordHash = securityUtils.hashPassword(newPassword, newSalt);
+      const newPasswordHash = await securityUtils.hashPassword(newPassword, newSalt);
       
       // Update password
       await connection.query(
@@ -348,27 +352,27 @@ async createUserSecure(fname, lname, uEmail, password) {
     }
   },
   
-async findUserByEmail(email) {
-  const connection = await pool.getConnection();
-  try {
-    // Secure with parameterized query
-    const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
-    
-    if (users.length === 0) {
-      return { success: false, message: 'User not found' };
+  async findUserByEmail(email) {
+    const connection = await pool.getConnection();
+    try {
+      // Secure with parameterized query
+      const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+      
+      if (users.length === 0) {
+        return { success: false, message: 'User not found' };
+      }
+      
+      return { 
+        success: true,
+        user: users[0]
+      };
+    } catch (error) {
+      console.error('Error finding user by email:', error);
+      return { success: false, error: error.message };
+    } finally {
+      connection.release();
     }
-    
-    return { 
-      success: true,
-      user: users[0]
-    };
-  } catch (error) {
-    console.error('Error finding user by email:', error);
-    return { success: false, error: error.message };
-  } finally {
-    connection.release();
   }
-}
 };
 
 module.exports = userModel;

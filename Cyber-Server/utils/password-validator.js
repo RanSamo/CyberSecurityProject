@@ -59,11 +59,11 @@ async function validatePassword(password, userId = null) {
             [userId, historyCount]
           );
           
-          // We need the user's salt to hash the new password for comparison
+          // Check each historical password
           for (const item of history) {
-            const historicalHash = securityUtils.hashPassword(password, item.salt);
+            const historicalMatch = await securityUtils.verifyPassword(password, item.password_hash, item.salt);
             
-            if (historicalHash === item.password_hash) {
+            if (historicalMatch) {
               errors.push(`Cannot reuse one of your last ${historyCount} passwords`);
               break;
             }
@@ -87,9 +87,8 @@ async function validatePassword(password, userId = null) {
   }
 }
 
-// Get the current password configuration
 function getPasswordConfig() {
-  return { ...passwordConfig };  // Return a copy to prevent direct modification
+  return { ...passwordConfig };  
 }
 
 module.exports = { 
