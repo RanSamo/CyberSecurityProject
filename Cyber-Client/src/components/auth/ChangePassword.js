@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AuthContext from '../auth/AuthContext'; 
 import './ChangePassword.css'; // Import the CSS file
 
 const ChangePassword = () => {
+    const { user, getAuthHeader } = useContext(AuthContext); // Get auth header function
     const [uEmail, setuEmail] = useState('');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -26,11 +28,16 @@ const ChangePassword = () => {
 
         setIsPending(true);
 
+        const headers = {
+            'Content-Type': 'application/json',
+            ...getAuthHeader() // This adds the Authorization: Bearer token
+        };
+
         console.log("📤 Sending password change request:", JSON.stringify(passwordChangeRequest));
 
         fetch('http://localhost:8000/users/change-password', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(passwordChangeRequest)
         })
             .then(res => res.json())

@@ -123,27 +123,51 @@ async loginUser(req, res) {
     }
   },
 
-  // Change password
-  async changePassword(req, res) {
-    try {
-      const { userId, currentPassword, newPassword } = req.body;
-      
-      const result = await userModel.changePassword(userId, currentPassword, newPassword);
-      
-      if (result.success) {
-        res.status(200).json({ success: true, message: 'Password changed successfully' });
-      } else {
-        res.status(400).json({ 
-          success: false, 
-          message: result.message || 'Password change failed',
-          errors: result.errors
-        });
-      }
-    } catch (error) {
-      console.error('Password change error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
-    }
-  }
-};
 
+
+  // Change password - will change this to use only token without email
+async changePassword(req, res) {
+  try {
+    // Get userId from JWT token (added by auth middleware)
+    const userId = req.userId;
+    
+    // Get information from the request body
+    const { uEmail, currentPassword, newPassword } = req.body;
+    
+    // Verify the email belongs to the authenticated user
+    const userByEmail = await userModel.findUserByEmail(uEmail);
+    
+    if (!userByEmail.success) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'User not found with provided email' 
+      });
+    }
+    
+    // Make sure the email belongs to the authenticated user
+    if (userByEmail.user.user_id !== userId) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You are not authorized to change this user\'s password' 
+      });
+    }
+    
+    // Now call the model function to change the password
+    const result = await userModel.changePassword(userId, currentPassword, newPassword);
+    
+    if (result.success) {
+      res.status(200).json({ success: true, message: 'Password changed successfully' });
+    } else {
+      res.status(400).json({ 
+        success: false, 
+        message: result.message || 'Password change failed',
+        errors: result.errors
+      });
+    }
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+}
+}
 module.exports = userController;

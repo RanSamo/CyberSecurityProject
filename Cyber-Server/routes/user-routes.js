@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user-controller');
+const { authenticateUser } = require('../middleware/auth'); 
+
 
 // Register a new user
 router.post('/register', userController.registerUser);
@@ -14,7 +16,6 @@ router.post('/request-reset', userController.requestPasswordReset);
 // Reset password with token
 router.post('/reset-password', userController.resetPassword);
 
-// Change password (in a production app, this would require authentication middleware)
-router.post('/change-password', userController.changePassword);
+router.post('/change-password', authenticateUser, userController.changePassword);
 
 module.exports = router;
