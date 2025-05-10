@@ -36,6 +36,7 @@ const Login = () => {
                     lname: data.lastName, // Use the last name from response
                     fullName: `${data.firstName} ${data.lastName}`, // Combine first and last name
                     email: data.email,  // Use the email from response
+                    token: data.token // Store the JWT token
                 };
                 login(userData); // Pass the structured user data to AuthContext
                 setIsPending(false);

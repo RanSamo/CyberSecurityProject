@@ -13,6 +13,10 @@ export const AuthProvider = ({ children }) => {
 
         // Store user data in local storage
         localStorage.setItem("user", JSON.stringify(userData));
+
+        if (userData.token) {
+        localStorage.setItem("token", userData.token);
+    }
     };
 
     // logout function
@@ -22,7 +26,15 @@ export const AuthProvider = ({ children }) => {
 
         // Remove user data from local storage
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
     };
+
+    // get the auth header for API requests
+    const getAuthHeader = () => {
+                const token = localStorage.getItem("token") || (user && user.token);
+                return token ? { 'Authorization': `Bearer ${token}` } : {};
+    };
+
 
     // Check if the user is already logged in when the app loads
     useEffect(() => {
@@ -42,7 +54,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+        <AuthContext.Provider value={{ isLoggedIn, user, login, logout, getAuthHeader}}>
             {children}
         </AuthContext.Provider>
     );
