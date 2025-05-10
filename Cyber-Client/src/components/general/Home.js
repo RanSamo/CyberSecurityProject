@@ -20,16 +20,16 @@ const Home = () => {
         setIsLoading(true);
         setError(null);
 
-        // Get user email to identify which clients to fetch
-        const userEmail = user?.email; 
+        // Get token from localStorage or user object
+        const token = localStorage.getItem("token") || (user && user.token);
+
 
         // Include user identifier in query params
-        fetch(`http://localhost:8000/clients?userEmail=${encodeURIComponent(userEmail)}`, {
+        fetch(`http://localhost:8000/clients`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                // Token-based auth will be added later
-                // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': token ? `Bearer ${token}` : '',
             }
         })
             .then(response => {
@@ -39,7 +39,8 @@ const Home = () => {
                 return response.json();
             })
             .then(data => {
-                setClients(data);
+                console.log('Client data received:', data); 
+                setClients(data.clients);
                 setIsLoading(false);
             })
             .catch(err => {
@@ -85,12 +86,12 @@ const Home = () => {
                                         </thead>
                                         <tbody>
                                             {clients.map((client) => (
-                                                <tr key={client.id}>
-                                                    <td>{client.firstName} {client.lastName}</td>
-                                                    <td>{client.cEmail}</td>
-                                                    <td>{client.phoneNumber}</td>
+                                                <tr key={client.client_id}>
+                                                    <td>{client.first_name} {client.last_name}</td>
+                                                    <td>{client.email}</td>
+                                                    <td>{client.phone}</td>
                                                     <td>{client.address}</td>
-                                                    <td>{client.packageLevel}</td>
+                                                    <td>{client.package}</td>
                                                 </tr>
                                             ))}
                                         </tbody>

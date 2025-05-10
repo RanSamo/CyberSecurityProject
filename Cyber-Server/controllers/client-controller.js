@@ -4,38 +4,29 @@ const { findUserByEmail } = require('../models/user-model');
 // Client controller functions
 const clientController = {
   // Get all clients for the current user
-  async getAllClients(req, res) {
-    try {
-      // Check if using authentication or userEmail query parameter
-      let userId = req.userId; // From authentication middleware
-      const { userEmail } = req.query;
-      
-      // If userEmail is provided but no userId from auth
-      if (userEmail && !userId) {
-        // Find the user by email
-        const userResult = await findUserByEmail(userEmail);
-        
-        if (!userResult.success) {
-          return res.status(404).json({ success: false, message: 'User not found' });
-        }
-        
-        // Use the found user's ID
-        userId = userResult.user.id;
-      }
-      
-      // Now that we have a userId (either from auth or from email lookup), get all clients
-      const result = await clientModel.getAllClientsForUserSecure(userId);
-      
-      if (result.success) {
-        res.status(200).json({ success: true, clients: result.clients });
-      } else {
-        res.status(400).json({ success: false, message: result.error || 'Failed to get clients' });
-      }
-    } catch (error) {
-      console.error('Get all clients error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
+  // Get all clients for the current user
+async getAllClients(req, res) {
+  try {
+    // Get userId from JWT token (added by auth middleware)
+    const userId = req.userId;
+    
+    console.log('Fetching clients for userId:', userId);
+    
+    // Now that we have a userId from auth, get all clients
+    const result = await clientModel.getAllClientsForUserSecure(userId);
+    
+    console.log('Client fetch result:', result);
+    
+    if (result.success) {
+      res.status(200).json({ success: true, clients: result.clients });
+    } else {
+      res.status(400).json({ success: false, message: result.error || 'Failed to get clients' });
     }
-  },
+  } catch (error) {
+    console.error('Get all clients error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+},
 
   // Search clients
   async searchClients(req, res) {

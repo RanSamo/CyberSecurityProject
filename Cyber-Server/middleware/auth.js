@@ -1,16 +1,24 @@
-//TODO.Implement the authentication with JWT
-//This is temp implementation
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
 const authenticateUser = (req, res, next) => {
-    const userId = req.headers['user-id'];
-    
-    if (!userId) {
-      return res.status(401).json({ success: false, message: 'Authentication required' });
-    }
-    
-    // we will verify a token
-    // For now, we're just checking if a user ID is provided
-    req.userId = userId;
-    next();
-  };
+  // Get token from Authorization header
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Format: "Bearer TOKEN"
   
-  module.exports = { authenticateUser };
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Access denied. No token provided.' });
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.userId;
+    next();
+  } catch (error) {
+    console.error('JWT verification error:', error);
+    return res.status(403).json({ success: false, message: 'Invalid or expired token.' });
+  }
+};
+
+module.exports = { authenticateUser };

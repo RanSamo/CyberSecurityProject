@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const { userModel } = require('../models');
 const { validatePassword } = require('../utils/password-validator');
 
@@ -37,37 +38,49 @@ const userController = {
   },
 
   // Login user
-  async loginUser(req, res) {
-    try {
-      const { uEmail, password } = req.body;
-      
-      // First find user by email
-      const userResult = await userModel.findUserByEmail(uEmail);
-      
-      if (!userResult.success) {
-        return res.status(401).json({ success: false, message: 'Invalid credentials' });
-      }
-      
-      // Now verify with email and password
-      const result = await userModel.verifyUserSecure(uEmail, password);
-      
-      if (result.success) {
-        // In a real implementation, you would generate and return a JWT here
-        res.status(200).json({ 
-          success: true, 
+async loginUser(req, res) {
+  try {
+    const { uEmail, password } = req.body;
+    
+    // First find user by email
+    const userResult = await userModel.findUserByEmail(uEmail);
+    
+    if (!userResult.success) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+    
+    // Now verify with email and password
+    const result = await userModel.verifyUserSecure(uEmail, password);
+    
+    if (result.success) {
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
           userId: result.userId,
           email: result.email,
           firstName: result.firstName,
           lastName: result.lastName
-        });
-      } else {
-        res.status(401).json({ success: false, message: result.message || 'Invalid credentials' });
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ success: false, message: 'Server error during login' });
+        }, 
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
+      res.status(200).json({ 
+        success: true, 
+        userId: result.userId,
+        email: result.email,
+        firstName: result.firstName,
+        lastName: result.lastName,
+        token: token
+      });
+    } else {
+      res.status(401).json({ success: false, message: result.message || 'Invalid credentials' });
     }
-  },
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ success: false, message: 'Server error during login' });
+  }
+},
 
   // Request password reset
   async requestPasswordReset(req, res) {

@@ -45,9 +45,15 @@ const SystemPage = () => {
 
         setIsPending(true);
 
+        // Get token from localStorage or user object
+        const token = localStorage.getItem("token") || (user && user.token);
+
         fetch('http://localhost:8000/system', {
             method: 'POST',
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": token ? `Bearer ${token}` : '',
+            },
             body: JSON.stringify(clientData)
         })
         .then(response => response.json())
