@@ -28,7 +28,7 @@ const ChangePassword = () => {
 
         console.log("📤 Sending password change request:", JSON.stringify(passwordChangeRequest));
 
-        fetch('http://localhost:8000/change-password', {
+        fetch('http://localhost:8000/users/change-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(passwordChangeRequest)

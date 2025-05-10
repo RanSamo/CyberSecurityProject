@@ -22,7 +22,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/tempforgot" element={<TempForgot />} />
-            <Route path="/changePassword" element={<ChangePassword />} />
+            <Route path="/change-password" element={<ChangePassword />} />
             <Route path="/system" element={<SystemPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
