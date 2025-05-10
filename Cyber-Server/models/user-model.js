@@ -184,7 +184,9 @@ const userModel = {
       return { 
         success: true,
         userId: user.user_id,
-        email: user.email
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name
       };
     } catch (error) {
       console.error('Error verifying user:', error);

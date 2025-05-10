@@ -54,8 +54,7 @@ const Home = () => {
             {isLoggedIn ? (
                 <>
                     <div className="home-header">
-                    /* TODO. need to get the full name of the user from the backend and display it here. */
-                        <h2>Welcome back, {user.email}!</h2> 
+                        <h2>Welcome back, {user.fullName}!</h2> 
                         <p>Manage your client database below</p>
                     </div>
 

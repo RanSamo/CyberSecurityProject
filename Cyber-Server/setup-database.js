@@ -47,12 +47,12 @@ async function setupDatabase() {
     `);
     console.log('Password history table created successfully');
     
-    // Create customers table with user_id foreign key
-    // unique_email_per_user - ensures that a single user cannot have multiple customers with the same email
-    // but different users can have customers with the same email
+    // Create clients table with user_id foreign key
+    // unique_email_per_user - ensures that a single user cannot have multiple clients with the same email
+    // but different users can have clients with the same email
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS customers (
-        customer_id INT AUTO_INCREMENT PRIMARY KEY,
+      CREATE TABLE IF NOT EXISTS clients (
+        client_id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         first_name VARCHAR(50) NOT NULL,
         last_name VARCHAR(50) NOT NULL,
@@ -64,12 +64,12 @@ async function setupDatabase() {
         UNIQUE KEY unique_email_per_user (email, user_id) 
       )
     `);
-    console.log('Customers table created successfully');
+    console.log('clients table created successfully');
    
     // Create indexes for better performance
     try {
       await connection.query(`CREATE INDEX idx_users_email ON users(email)`);
-      await connection.query(`CREATE INDEX idx_customers_user_id ON customers(user_id)`);
+      await connection.query(`CREATE INDEX idx_clients_user_id ON clients(user_id)`);
       console.log('Indexes created successfully');
     } catch (error) {
       if (error.code === 'ER_DUP_KEYNAME') {
