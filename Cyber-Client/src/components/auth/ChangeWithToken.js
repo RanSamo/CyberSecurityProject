@@ -1,12 +1,12 @@
 import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../auth/AuthContext';
-import './ChangePassword.css'; // Import the CSS file
+import './ChangeWithToken.css'; // Import the CSS file
 
-const ChangePassword = () => {
+const ChangeWithToken = () => {
     const { user, getAuthHeader } = useContext(AuthContext); // Get auth header function
-    const [uEmail, setuEmail] = useState('');
-    const [currentPassword, setCurrentPassword] = useState('');
+    //const [uEmail, setuEmail] = useState('');
+    const [Token, setToken] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [reNewPassword, setReNewPassword] = useState('');
     const [isPending, setIsPending] = useState(false);
@@ -22,7 +22,7 @@ const ChangePassword = () => {
 
         const passwordChangeRequest = {
             // uEmail,
-            currentPassword,
+            Token,
             newPassword
         };
 
@@ -35,7 +35,7 @@ const ChangePassword = () => {
 
         console.log("📤 Sending password change request:", JSON.stringify(passwordChangeRequest));
 
-        fetch('http://localhost:8000/users/change-password', {
+        fetch('http://localhost:8000/users/reset-password', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(passwordChangeRequest)
@@ -64,7 +64,7 @@ const ChangePassword = () => {
     };
 
     return (
-        <div className="change-password">
+        <div className="reset-password">
             <h2>Change Password</h2>
             <form onSubmit={handleSubmit}>
                 {/* <label>User's Email:</label>
@@ -75,12 +75,12 @@ const ChangePassword = () => {
                     onChange={(e) => setuEmail(e.target.value)}
                 />  */}
 
-                <label>Current Password:</label>
+                <label>Email Token:</label>
                 <input
-                    type="password"
+                    type="text"
                     required
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    value={Token}
+                    onChange={(e) => setToken(e.target.value)}
                 />
 
                 <label>New Password:</label>
@@ -102,12 +102,9 @@ const ChangePassword = () => {
                 {!isPending && <button>Submit Password Change</button>}
                 {isPending && <button disabled>Loading...</button>}
 
-                <div className="login-regi">
-                    <Link to="/register">Don't have an account? Register here</Link>
-                </div>
             </form>
         </div>
     );
 }
 
-export default ChangePassword;
+export default ChangeWithToken;

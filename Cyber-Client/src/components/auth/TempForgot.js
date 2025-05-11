@@ -16,7 +16,7 @@ const TempForgot = () => {
 
         console.log("📤 Sending forgot password request:", JSON.stringify(userEmail));
 
-        fetch('http://localhost:8000/users/reset-password', {
+        fetch('http://localhost:8000/users/request-reset', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userEmail)
@@ -27,7 +27,7 @@ const TempForgot = () => {
 
                 if (data.success) {
                     console.log('✅ Password reset email sent successfully');
-                    navigate('/changePassword'); // או דף אחר שתבחר
+                    navigate('/reset-password'); // או דף אחר שתבחר
                 } else {
                     alert(data.message || 'Failed to request password reset');
                 }
@@ -40,7 +40,7 @@ const TempForgot = () => {
                 };
                 console.log("📥 Simulated response:", fakeResponse);
                 alert('Simulated password reset complete');
-                navigate('/changePassword'); // או דף אחר שתבחר
+                navigate('/reset-password'); // או דף אחר שתבחר
             })
             .finally(() => {
                 setIsPending(false);
