@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 //const { userModel } = require('../models');
 const { validatePassword } = require('../utils/password-validator');
 const userModel = require('../models/user-model');
+const { sendResetEmail } = require('./mailer');
 
 // User controller functions
 const userController = {
@@ -87,34 +88,33 @@ async loginUser(req, res) {
  async requestPasswordReset(req, res) {
   try {
     const { uEmail } = req.body;
-
     const result = await userModel.requestPasswordReset(uEmail);
 
-    if (!result || !result.success) {
+    if (!result.success) {
       return res.status(404).json({
         success: false,
         message: 'User not found in the system'
       });
     }
 
-    // Email exists - return message
+    // Create the reset link
+    const resetLink = `http://localhost:3000/reset-password?token=${result.token}`;
+
+    // Send the email with the token link
+    await sendEmail(
+      uEmail,
+      'Password Reset Request',
+      `Click the link below to reset your password:\n\n${resetLink}`
+    );
+
     res.status(200).json({ 
       success: true, 
-      message: 'A reset token is being sent to your email'
+      message: 'A password reset token is being sent to your email'
     });
-
-    // For now: print token to console
-    if (result.token) {
-      console.log('Reset token for email', uEmail, ':', result.token);
-      // TODO: sendResetEmail(uEmail, result.token);
-    }
 
   } catch (error) {
     console.error('Password reset request error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error' 
-    });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 },
 

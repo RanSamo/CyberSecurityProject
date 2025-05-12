@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+
 const transporter = nodemailer.createTransport({
   host: 'smtp.mailtrap.io',
   port: 587,
@@ -8,8 +9,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendEmail(to, subject, text) {
-  return transporter.sendMail({ from: '"Cyber Project" <no-reply@cyber.com>', to, subject, text });
+async function sendEmail(to, subject, html) {
+  return transporter.sendMail({
+    from: '"Cyber Project" <no-reply@cyber.com>',
+    to,
+    subject,
+    html, // HTML content instead of plain text
+  });
 }
 
 module.exports = sendEmail;
