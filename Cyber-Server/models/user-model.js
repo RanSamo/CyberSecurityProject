@@ -267,42 +267,31 @@ const userModel = {
   
   // Generate password reset token
   async requestPasswordReset(email) {
-    const connection = await pool.getConnection();
-    try {
-      const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
-      
-      if (users.length === 0) {
-        // For security, don't reveal if email exists
-        return { success: true };
-      }
-      
-      const user = users[0];
-      
-      // Generate token using SHA-1 as required
-      const resetToken = securityUtils.generateResetToken();
-      
-      // Set token expiry to 1 hour from now
-      const expiry = new Date();
-      expiry.setHours(expiry.getHours() + 1);
-      
-      // Save token to database
-      await connection.query(
-        'UPDATE users SET password_reset_token = ?, password_reset_token_expiry = ? WHERE user_id = ?',
-        [resetToken, expiry, user.user_id]
-      );
-      
-      return { 
-        success: true,
-        token: resetToken, // In production, this would be sent via email
-        userId: user.user_id
-      };
-    } catch (error) {
-      console.error('Error requesting password reset:', error);
-      return { success: false, error: error.message };
-    } finally {
-      connection.release();
+  const connection = await db.getConnection();
+  try {
+    const [rows] = await connection.query(
+      'SELECT id FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (rows.length === 0) {
+      return { success: false, message: 'User not found' };
     }
-  },
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour from now
+
+    await connection.query(
+      'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+      [rows[0].id, token, expiresAt]
+    );
+
+    return { success: true, token };
+  } finally {
+    connection.release();
+  }
+}
+,
   
   // Validate reset token and update password
   async resetPassword(token, newPassword) {

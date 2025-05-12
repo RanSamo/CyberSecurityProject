@@ -84,26 +84,33 @@ async loginUser(req, res) {
 
   // Request password reset
   async requestPasswordReset(req, res) {
-    try {
-      const { uEmail } = req.body;
-      const result = await userModel.requestPasswordReset(uEmail);
-      
-      // Always return success even if email not found (security best practice)
-      res.status(200).json({ 
-        success: true, 
-        message: 'If your email exists in our system, a reset token has been sent'
+  try {
+    const { uEmail } = req.body;
+    const result = await userModel.requestPasswordReset(uEmail);
+
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found in the system'
       });
-      
-      // TODO: Need to send an email with the token
-      if (result.success && result.token) {
-        console.log('Reset token for email', uEmail, ':', result.token);
-        // sendResetEmail(uEmail, result.token);
-      }
-    } catch (error) {
-      console.error('Password reset request error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
     }
-  },
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'A password reset link has been sent to your email'
+    });
+
+    // For now: print the token to console for testing
+    if (result.token) {
+      console.log('Reset token for email', uEmail, ':', result.token);
+      // Later: sendResetEmail(uEmail, result.token);
+    }
+
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+},
 
   // Reset password with token
   async resetPassword(req, res) {
