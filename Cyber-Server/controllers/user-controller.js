@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 //const { userModel } = require('../models');
 const { validatePassword } = require('../utils/password-validator');
 const userModel = require('../models/user-model');
-const { sendResetEmail } = require('./mailer');
+const sendEmail = require('../utils/mailer');
 
 // User controller functions
 const userController = {
