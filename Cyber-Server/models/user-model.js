@@ -272,7 +272,7 @@ const userModel = {
 ;
   try {
     const [rows] = await connection.query(
-      'SELECT id FROM users WHERE email = ?',
+      'SELECT user_id FROM users WHERE email = ?',
       [email]
     );
 
