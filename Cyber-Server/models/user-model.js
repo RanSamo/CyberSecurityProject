@@ -1,8 +1,9 @@
-const { pool } = require('../config/db');
+//const { pool } = require('../config/db');
 const securityUtils = require('../utils/security-utils');
 const passwordConfig = require('../config/password-config');
 const { validatePassword } = require('../utils/password-validator');
 const crypto = require('crypto');
+const db = require('./db');
 
 
 // User-related database functions
