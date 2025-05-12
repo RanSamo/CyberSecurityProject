@@ -88,8 +88,11 @@ async loginUser(req, res) {
  async requestPasswordReset(req, res) {
   try {
     const { uEmail } = req.body;
+
+    // בודק אם המייל קיים במערכת
     const result = await userModel.requestPasswordReset(uEmail);
 
+    // אם המייל לא נמצא בבסיס הנתונים
     if (!result.success) {
       return res.status(404).json({
         success: false,
@@ -97,6 +100,7 @@ async loginUser(req, res) {
       });
     }
 
+    // במקרה שהמייל נמצא במערכת
     // Create the reset link
     const resetLink = `http://localhost:3000/reset-password?token=${result.token}`;
 
@@ -107,11 +111,13 @@ async loginUser(req, res) {
       `Click the link below to reset your password:\n\n${resetLink}`
     );
 
+    // הודעה שתוצג במקרה שהמייל נמצא במערכת
     res.status(200).json({ 
       success: true, 
-      message: 'A password reset token is being sent to your email'
+      message: 'A password reset token is being sent to your email' 
     });
 
+    // לא לאפשר למשתמש להמשיך מעבר לכך, המערכת עוצרת כאן
   } catch (error) {
     console.error('Password reset request error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
