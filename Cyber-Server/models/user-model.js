@@ -358,6 +358,21 @@ const userModel = {
   }
 }
 ,
+async unlockAccountByToken(token) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.query(
+      `UPDATE users 
+       SET account_locked = 0, failed_login_attempts = 0 
+       WHERE password_reset_token = ?`,
+      [token]
+    );
+  } catch (err) {
+    console.error('Error unlocking account by token:', err);
+  } finally {
+    connection.release();
+  }
+},
   
   async findUserByEmail(email) {
     const connection = await pool.getConnection();

@@ -126,21 +126,24 @@ async loginUser(req, res) {
 
   // Reset password with token
   async resetPassword(req, res) {
-    try {
-      const { token, newPassword } = req.body;
-      
-      const result = await userModel.resetPassword(token, newPassword);
-      
-      if (result.success) {
-        res.status(200).json({ success: true, message: 'Password has been reset successfully' });
-      } else {
-        res.status(400).json({ success: false, message: result.message || 'Password reset failed' });
-      }
-    } catch (error) {
-      console.error('Password reset error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
+  try {
+    const { token, newPassword } = req.body;
+
+    const result = await userModel.resetPassword(token, newPassword);
+
+    if (result.success) {
+      // עדכון נוסף: פתיחת חשבון וניקוי ניסיונות כושלים
+      await userModel.unlockAccountByToken(token);
+
+      res.status(200).json({ success: true, message: 'Password has been reset successfully' });
+    } else {
+      res.status(400).json({ success: false, message: result.message || 'Password reset failed' });
     }
-  },
+  } catch (error) {
+    console.error('Password reset error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+}
 
 
 
