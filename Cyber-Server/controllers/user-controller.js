@@ -143,7 +143,7 @@ async loginUser(req, res) {
     console.error('Password reset error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
-}
+},
 
 
 
