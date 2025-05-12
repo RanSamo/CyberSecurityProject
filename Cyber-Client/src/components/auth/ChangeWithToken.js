@@ -1,25 +1,15 @@
-import { useState, useContext, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthContext from '../auth/AuthContext';
 import './ChangeWithToken.css';
 
 const ChangeWithToken = () => {
     const { getAuthHeader } = useContext(AuthContext);
-    const [token, setToken] = useState('');
+    const [token, setToken] = useState(''); // שים לב - אות קטנה
     const [newPassword, setNewPassword] = useState('');
     const [reNewPassword, setReNewPassword] = useState('');
     const [isPending, setIsPending] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
-
-    // שליפה אוטומטית של הטוקן מה-URL
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const tokenFromURL = params.get('token');
-        if (tokenFromURL) {
-            setToken(tokenFromURL);
-        }
-    }, [location]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -30,7 +20,7 @@ const ChangeWithToken = () => {
         }
 
         const passwordChangeRequest = {
-            token,  // שים לב לאות קטנה - זה חשוב
+            token,          // ← כאן האות קטנה
             newPassword
         };
 
@@ -66,6 +56,15 @@ const ChangeWithToken = () => {
         <div className="reset-password">
             <h2>Change Password</h2>
             <form onSubmit={handleSubmit}>
+
+                <label>Email Token:</label>
+                <input
+                    type="text"
+                    required
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                />
+
                 <label>New Password:</label>
                 <input
                     type="password"
@@ -84,6 +83,7 @@ const ChangeWithToken = () => {
 
                 {!isPending && <button>Submit Password Change</button>}
                 {isPending && <button disabled>Loading...</button>}
+
             </form>
         </div>
     );
