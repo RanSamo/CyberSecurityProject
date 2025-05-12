@@ -267,9 +267,8 @@ const userModel = {
   },
   
   // Generate password reset token
-  async requestPasswordReset(email) {
-  const connection = await pool.getConnection();
-;
+  async  requestPasswordReset(email) {
+  const connection = await db.pool.getConnection();
   try {
     const [rows] = await connection.query(
       'SELECT user_id FROM users WHERE email = ?',
@@ -277,18 +276,22 @@ const userModel = {
     );
 
     if (rows.length === 0) {
-      return { success: false, message: 'User not found' };
+      return { success: false, message: 'User not found' }; // תוכל להחזיר גם null פה
     }
 
+    const userId = rows[0].user_id;
+
     const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 3600000); // 1 hour from now
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // שעה קדימה
 
     await connection.query(
       'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
-      [rows[0].id, token, expiresAt]
+      [userId, token, expiresAt]
     );
 
     return { success: true, token };
+  } catch (err) {
+    throw err;
   } finally {
     connection.release();
   }
