@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
-const { userModel } = require('../models');
+//const { userModel } = require('../models');
 const { validatePassword } = require('../utils/password-validator');
+const userModel = require('../models/user-model');
 
 // User controller functions
 const userController = {
@@ -83,32 +84,37 @@ async loginUser(req, res) {
 },
 
   // Request password reset
-  async requestPasswordReset(req, res) {
+ async requestPasswordReset(req, res) {
   try {
     const { uEmail } = req.body;
+
     const result = await userModel.requestPasswordReset(uEmail);
 
-    if (!result.success) {
+    if (!result || !result.success) {
       return res.status(404).json({
         success: false,
         message: 'User not found in the system'
       });
     }
 
+    // Email exists - return message
     res.status(200).json({ 
       success: true, 
-      message: 'A password reset link has been sent to your email'
+      message: 'A reset token is being sent to your email'
     });
 
-    // For now: print the token to console for testing
+    // For now: print token to console
     if (result.token) {
       console.log('Reset token for email', uEmail, ':', result.token);
-      // Later: sendResetEmail(uEmail, result.token);
+      // TODO: sendResetEmail(uEmail, result.token);
     }
 
   } catch (error) {
     console.error('Password reset request error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
+    });
   }
 },
 
