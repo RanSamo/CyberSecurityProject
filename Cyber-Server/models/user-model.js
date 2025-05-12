@@ -2,7 +2,7 @@ const { pool } = require('../config/db');
 const securityUtils = require('../utils/security-utils');
 const passwordConfig = require('../config/password-config');
 const { validatePassword } = require('../utils/password-validator');
-const db = require('../db');
+const { pool } = require('../db');
 const crypto = require('crypto');
 
 
@@ -269,7 +269,8 @@ const userModel = {
   
   // Generate password reset token
   async requestPasswordReset(email) {
-  const connection = await db.getConnection();
+  const connection = await pool.getConnection();
+;
   try {
     const [rows] = await connection.query(
       'SELECT id FROM users WHERE email = ?',
