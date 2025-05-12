@@ -267,8 +267,8 @@ const userModel = {
   },
   
   // Generate password reset token
-  async  requestPasswordReset(email) {
-  const connection = await db.pool.getConnection();
+  async requestPasswordReset(email) {
+  const connection = await pool.getConnection();
   try {
     const [rows] = await connection.query(
       'SELECT user_id FROM users WHERE email = ?',
@@ -276,7 +276,7 @@ const userModel = {
     );
 
     if (rows.length === 0) {
-      return { success: false, message: 'User not found' }; // תוכל להחזיר גם null פה
+      return { success: false, message: 'User not found' };
     }
 
     const userId = rows[0].user_id;
