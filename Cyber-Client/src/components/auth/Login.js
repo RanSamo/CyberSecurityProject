@@ -44,7 +44,7 @@ const Login = () => {
             } else {
                 console.error('Error logging in user:', data.message);
                 setIsPending(false);
-                alert('Failed to log in. Please check your credentials.');
+                alert(data.message ||'Failed to log in. Please check your credentials.');
             }
         })
         

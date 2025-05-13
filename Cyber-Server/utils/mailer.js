@@ -1,12 +1,11 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// הגדרות עבור Gmail עם סיסמת אפליקציה
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.User_Mail,      // Your Gmail address
-    pass: process.env.App_Pass                 // App password (no spaces)
+    user: process.env.USER_MAIL,      // Your Gmail address
+    pass: process.env.APP_PASS                 // App password (no spaces)
   }
 });
 
@@ -18,8 +17,8 @@ const transporter = nodemailer.createTransport({
  */
 async function sendEmail(_to, subject, text) {
   const mailOptions = {
-    from: 'daniellkarminsky@gmail.com',
-    to: 'daniellkarminsky@gmail.com', // Always sent to you!
+    from: process.env.USER_MAIL,
+    to: process.env.USER_MAIL, // Always sent to you!
     subject,
     text
   };

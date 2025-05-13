@@ -64,7 +64,7 @@ async loginUser(req, res) {
           lastName: result.lastName
         }, 
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '1h' }
       );
       
       res.status(200).json({ 
@@ -89,10 +89,10 @@ async loginUser(req, res) {
   try {
     const { uEmail } = req.body;
 
-    // בודק אם המייל קיים במערכת
+    // Check if the email exists in the system
     const result = await userModel.requestPasswordReset(uEmail);
 
-    // אם המייל לא נמצא בבסיס הנתונים
+    // If the email is not found in the database
     if (!result.success) {
       return res.status(404).json({
         success: false,
@@ -100,24 +100,22 @@ async loginUser(req, res) {
       });
     }
 
-    // במקרה שהמייל נמצא במערכת
-    // Create the reset link
-    const resetLink = `http://localhost:3000/reset-password?token=${result.token}`;
+    // Create the reset token
+    const resetToken = result.token;
 
     // Send the email with the token link
     await sendEmail(
       uEmail,
       'Password Reset Request',
-      `Click the link below to reset your password:\n\n${resetLink}`
+      `Fill in this token in the "Email Token" field:\n\n${resetToken}`
     );
 
-    // הודעה שתוצג במקרה שהמייל נמצא במערכת
+    // Response for successful token generation
     res.status(200).json({ 
       success: true, 
       message: 'A password reset token is being sent to your email' 
     });
 
-    // לא לאפשר למשתמש להמשיך מעבר לכך, המערכת עוצרת כאן
   } catch (error) {
     console.error('Password reset request error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -132,9 +130,6 @@ async loginUser(req, res) {
     const result = await userModel.resetPassword(token, newPassword);
 
     if (result.success) {
-      // עדכון נוסף: פתיחת חשבון וניקוי ניסיונות כושלים
-      await userModel.unlockAccountByToken(token);
-
       res.status(200).json({ success: true, message: 'Password has been reset successfully' });
     } else {
       res.status(400).json({ success: false, message: result.message || 'Password reset failed' });
@@ -154,27 +149,12 @@ async changePassword(req, res) {
     const userId = req.userId;
     
     // Get information from the request body
-    const { uEmail, currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword } = req.body;
     
-    // Verify the email belongs to the authenticated user
-    const userByEmail = await userModel.findUserByEmail(uEmail);
+    // No need to verify email - we're using the userId from the JWT token
+    // which was already verified by the auth middleware
     
-    if (!userByEmail.success) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'User not found with provided email' 
-      });
-    }
-    
-    // Make sure the email belongs to the authenticated user
-    if (userByEmail.user.user_id !== userId) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'You are not authorized to change this user\'s password' 
-      });
-    }
-    
-    // Now call the model function to change the password
+    // Call the model function to change the password
     const result = await userModel.changePassword(userId, currentPassword, newPassword);
     
     if (result.success) {

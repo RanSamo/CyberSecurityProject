@@ -281,44 +281,43 @@ const userModel = {
 
     const userId = rows[0].user_id;
 
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // שעה קדימה
+    // Use the existing securityUtils.generateResetToken() function
+    const token = securityUtils.generateResetToken();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
+    // Update the existing fields in the users table
     await connection.query(
-      'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
-      [userId, token, expiresAt]
+      'UPDATE users SET password_reset_token = ?, password_reset_token_expiry = ? WHERE user_id = ?',
+      [token, expiresAt, userId]
     );
 
     return { success: true, token };
   } catch (err) {
-    throw err;
+    console.error('Error requesting password reset:', err);
+    return { success: false, error: err.message };
   } finally {
     connection.release();
   }
 }
 ,
   
-  // Validate reset token and update password
   async resetPassword(token, newPassword) {
   const connection = await pool.getConnection();
   try {
-    // חיפוש טוקן תקף בטבלה של הטוקנים
-    const [rows] = await connection.query(
-      `SELECT prt.user_id, u.* 
-       FROM password_reset_tokens prt 
-       JOIN users u ON prt.user_id = u.user_id 
-       WHERE prt.token = ? AND prt.expires_at > NOW()`,
+    // Find user with valid token
+    const [users] = await connection.query(
+      'SELECT * FROM users WHERE password_reset_token = ? AND password_reset_token_expiry > NOW()',
       [token]
     );
 
-    if (rows.length === 0) {
+    if (users.length === 0) {
       return { success: false, message: 'Invalid or expired token' };
     }
 
-    const user = rows[0];
+    const userId = users[0].user_id;
 
-    // בדיקת תקינות סיסמה חדשה
-    const validationResult = await validatePassword(newPassword);
+    // Validate new password
+    const validationResult = await validatePassword(newPassword,userId);
     if (!validationResult.valid) {
       return {
         success: false,
@@ -327,26 +326,20 @@ const userModel = {
       };
     }
 
-    // יצירת salt והאש חדשים
+    // Generate new salt and hash
     const newSalt = securityUtils.generateSalt();
     const newPasswordHash = await securityUtils.hashPassword(newPassword, newSalt);
 
-    // עדכון המשתמש עם הסיסמה החדשה
+    // Update the user with new password and clear reset token
     await connection.query(
-      'UPDATE users SET password_hash = ?, salt = ? WHERE user_id = ?',
-      [newPasswordHash, newSalt, user.user_id]
+      'UPDATE users SET password_hash = ?, salt = ?, password_reset_token = NULL, password_reset_token_expiry = NULL, account_locked = FALSE, failed_login_attempts = 0 WHERE user_id = ?',
+      [newPasswordHash, newSalt, userId]
     );
 
-    // הוספת הסיסמה החדשה להיסטוריה
+    // Add password to history
     await connection.query(
       'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
-      [user.user_id, newPasswordHash, newSalt]
-    );
-
-    // מחיקת הטוקן לאחר שימוש
-    await connection.query(
-      'DELETE FROM password_reset_tokens WHERE token = ?',
-      [token]
+      [userId, newPasswordHash, newSalt]
     );
 
     return { success: true };
@@ -356,23 +349,8 @@ const userModel = {
   } finally {
     connection.release();
   }
-}
-,
-async unlockAccountByToken(token) {
-  const connection = await pool.getConnection();
-  try {
-    await connection.query(
-      `UPDATE users 
-       SET account_locked = 0, failed_login_attempts = 0 
-       WHERE password_reset_token = ?`,
-      [token]
-    );
-  } catch (err) {
-    console.error('Error unlocking account by token:', err);
-  } finally {
-    connection.release();
-  }
 },
+
   
   async findUserByEmail(email) {
     const connection = await pool.getConnection();
