@@ -2,6 +2,7 @@ const { pool } = require('../config/db');
 const securityUtils = require('../utils/security-utils');
 const passwordConfig = require('../config/password-config');
 const { validatePassword } = require('../utils/password-validator');
+const crypto = require('crypto');
 
 
 // User-related database functions
@@ -267,92 +268,111 @@ const userModel = {
   
   // Generate password reset token
   async requestPasswordReset(email) {
-    const connection = await pool.getConnection();
-    try {
-      const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
-      
-      if (users.length === 0) {
-        // For security, don't reveal if email exists
-        return { success: true };
-      }
-      
-      const user = users[0];
-      
-      // Generate token using SHA-1 as required
-      const resetToken = securityUtils.generateResetToken();
-      
-      // Set token expiry to 1 hour from now
-      const expiry = new Date();
-      expiry.setHours(expiry.getHours() + 1);
-      
-      // Save token to database
-      await connection.query(
-        'UPDATE users SET password_reset_token = ?, password_reset_token_expiry = ? WHERE user_id = ?',
-        [resetToken, expiry, user.user_id]
-      );
-      
-      return { 
-        success: true,
-        token: resetToken, // In production, this would be sent via email
-        userId: user.user_id
-      };
-    } catch (error) {
-      console.error('Error requesting password reset:', error);
-      return { success: false, error: error.message };
-    } finally {
-      connection.release();
+  const connection = await pool.getConnection();
+  try {
+    const [rows] = await connection.query(
+      'SELECT user_id FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (rows.length === 0) {
+      return { success: false, message: 'User not found' };
     }
-  },
+
+    const userId = rows[0].user_id;
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // שעה קדימה
+
+    await connection.query(
+      'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+      [userId, token, expiresAt]
+    );
+
+    return { success: true, token };
+  } catch (err) {
+    throw err;
+  } finally {
+    connection.release();
+  }
+}
+,
   
   // Validate reset token and update password
   async resetPassword(token, newPassword) {
-    const connection = await pool.getConnection();
-    try {
-      const [users] = await connection.query(
-        'SELECT * FROM users WHERE password_reset_token = ? AND password_reset_token_expiry > NOW()',
-        [token]
-      );
-      
-      if (users.length === 0) {
-        return { success: false, message: 'Invalid or expired token' };
-      }
-      
-      const user = users[0];
-      
-      // Validate new password against configuration
-      const validationResult = await validatePassword(newPassword);
-      if (!validationResult.valid) {
-        return { 
-          success: false, 
-          message: 'Password does not meet requirements', 
-          errors: validationResult.errors 
-        };
-      }
-      
-      // Generate new salt and hash
-      const newSalt = securityUtils.generateSalt();
-      const newPasswordHash = await securityUtils.hashPassword(newPassword, newSalt);
-      
-      // Update password
-      await connection.query(
-        'UPDATE users SET password_hash = ?, salt = ?, password_reset_token = NULL, password_reset_token_expiry = NULL WHERE user_id = ?',
-        [newPasswordHash, newSalt, user.user_id]
-      );
-      
-      // Add to password history
-      await connection.query(
-        'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
-        [user.user_id, newPasswordHash, newSalt]
-      );
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Error resetting password:', error);
-      return { success: false, error: error.message };
-    } finally {
-      connection.release();
+  const connection = await pool.getConnection();
+  try {
+    // חיפוש טוקן תקף בטבלה של הטוקנים
+    const [rows] = await connection.query(
+      `SELECT prt.user_id, u.* 
+       FROM password_reset_tokens prt 
+       JOIN users u ON prt.user_id = u.user_id 
+       WHERE prt.token = ? AND prt.expires_at > NOW()`,
+      [token]
+    );
+
+    if (rows.length === 0) {
+      return { success: false, message: 'Invalid or expired token' };
     }
-  },
+
+    const user = rows[0];
+
+    // בדיקת תקינות סיסמה חדשה
+    const validationResult = await validatePassword(newPassword);
+    if (!validationResult.valid) {
+      return {
+        success: false,
+        message: 'Password does not meet requirements',
+        errors: validationResult.errors
+      };
+    }
+
+    // יצירת salt והאש חדשים
+    const newSalt = securityUtils.generateSalt();
+    const newPasswordHash = await securityUtils.hashPassword(newPassword, newSalt);
+
+    // עדכון המשתמש עם הסיסמה החדשה
+    await connection.query(
+      'UPDATE users SET password_hash = ?, salt = ? WHERE user_id = ?',
+      [newPasswordHash, newSalt, user.user_id]
+    );
+
+    // הוספת הסיסמה החדשה להיסטוריה
+    await connection.query(
+      'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
+      [user.user_id, newPasswordHash, newSalt]
+    );
+
+    // מחיקת הטוקן לאחר שימוש
+    await connection.query(
+      'DELETE FROM password_reset_tokens WHERE token = ?',
+      [token]
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return { success: false, error: error.message };
+  } finally {
+    connection.release();
+  }
+}
+,
+async unlockAccountByToken(token) {
+  const connection = await pool.getConnection();
+  try {
+    await connection.query(
+      `UPDATE users 
+       SET account_locked = 0, failed_login_attempts = 0 
+       WHERE password_reset_token = ?`,
+      [token]
+    );
+  } catch (err) {
+    console.error('Error unlocking account by token:', err);
+  } finally {
+    connection.release();
+  }
+},
   
   async findUserByEmail(email) {
     const connection = await pool.getConnection();

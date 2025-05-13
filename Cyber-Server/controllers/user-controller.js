@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
-const { userModel } = require('../models');
+//const { userModel } = require('../models');
 const { validatePassword } = require('../utils/password-validator');
+const userModel = require('../models/user-model');
+const sendEmail = require('../utils/mailer');
 
 // User controller functions
 const userController = {
@@ -83,45 +85,65 @@ async loginUser(req, res) {
 },
 
   // Request password reset
-  async requestPasswordReset(req, res) {
-    try {
-      const { uEmail } = req.body;
-      const result = await userModel.requestPasswordReset(uEmail);
-      
-      // Always return success even if email not found (security best practice)
-      res.status(200).json({ 
-        success: true, 
-        message: 'If your email exists in our system, a reset token has been sent'
+ async requestPasswordReset(req, res) {
+  try {
+    const { uEmail } = req.body;
+
+    // בודק אם המייל קיים במערכת
+    const result = await userModel.requestPasswordReset(uEmail);
+
+    // אם המייל לא נמצא בבסיס הנתונים
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found in the system'
       });
-      
-      // TODO: Need to send an email with the token
-      if (result.success && result.token) {
-        console.log('Reset token for email', uEmail, ':', result.token);
-        // sendResetEmail(uEmail, result.token);
-      }
-    } catch (error) {
-      console.error('Password reset request error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
     }
-  },
+
+    // במקרה שהמייל נמצא במערכת
+    // Create the reset link
+    const resetLink = `http://localhost:3000/reset-password?token=${result.token}`;
+
+    // Send the email with the token link
+    await sendEmail(
+      uEmail,
+      'Password Reset Request',
+      `Click the link below to reset your password:\n\n${resetLink}`
+    );
+
+    // הודעה שתוצג במקרה שהמייל נמצא במערכת
+    res.status(200).json({ 
+      success: true, 
+      message: 'A password reset token is being sent to your email' 
+    });
+
+    // לא לאפשר למשתמש להמשיך מעבר לכך, המערכת עוצרת כאן
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+},
 
   // Reset password with token
   async resetPassword(req, res) {
-    try {
-      const { token, newPassword } = req.body;
-      
-      const result = await userModel.resetPassword(token, newPassword);
-      
-      if (result.success) {
-        res.status(200).json({ success: true, message: 'Password has been reset successfully' });
-      } else {
-        res.status(400).json({ success: false, message: result.message || 'Password reset failed' });
-      }
-    } catch (error) {
-      console.error('Password reset error:', error);
-      res.status(500).json({ success: false, message: 'Server error' });
+  try {
+    const { token, newPassword } = req.body;
+
+    const result = await userModel.resetPassword(token, newPassword);
+
+    if (result.success) {
+      // עדכון נוסף: פתיחת חשבון וניקוי ניסיונות כושלים
+      await userModel.unlockAccountByToken(token);
+
+      res.status(200).json({ success: true, message: 'Password has been reset successfully' });
+    } else {
+      res.status(400).json({ success: false, message: result.message || 'Password reset failed' });
     }
-  },
+  } catch (error) {
+    console.error('Password reset error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+},
 
 
 
