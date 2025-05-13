@@ -1,21 +1,35 @@
 const nodemailer = require('nodemailer');
 
+// הגדרות עבור Gmail עם סיסמת אפליקציה
 const transporter = nodemailer.createTransport({
-  host: 'smtp.mailtrap.io',
-  port: 587,
+  service: 'gmail',
   auth: {
-    user: '46c09f80d28fc4',
-    pass: '2b6569f4e3d28f',
-  },
+    user: 'daniellkarminsky@gmail.com',      // כתובת ה-Gmail שלך
+    pass: 'lqufskphpssuigib'                 // סיסמת האפליקציה (ללא רווחים)
+  }
 });
 
-async function sendEmail(to, subject, html) {
-  return transporter.sendMail({
-    from: '"Cyber Project" <no-reply@cyber.com>',
-    to,
+/**
+ * פונקציה לשליחת אימייל — תמיד שולחת אליך!
+ * @param {string} _to - מיותר, מתעלמים ממנו
+ * @param {string} subject - נושא ההודעה
+ * @param {string} text - גוף ההודעה
+ */
+async function sendEmail(_to, subject, text) {
+  const mailOptions = {
+    from: 'daniellkarminsky@gmail.com',
+    to: 'daniellkarminsky@gmail.com', // תמיד נשלח אליך!
     subject,
-    html, // HTML content instead of plain text
-  });
+    text
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent:', info.response);
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw error;
+  }
 }
 
 module.exports = sendEmail;
