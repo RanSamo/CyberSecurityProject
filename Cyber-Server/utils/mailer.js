@@ -4,21 +4,21 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'daniellkarminsky@gmail.com',      // כתובת ה-Gmail שלך
-    pass: 'lqufskphpssuigib'                 // סיסמת האפליקציה (ללא רווחים)
+    user: 'daniellkarminsky@gmail.com',      // Your Gmail address
+    pass: 'lqufskphpssuigib'                 // App password (no spaces)
   }
 });
 
 /**
- * פונקציה לשליחת אימייל — תמיד שולחת אליך!
- * @param {string} _to - מיותר, מתעלמים ממנו
- * @param {string} subject - נושא ההודעה
- * @param {string} text - גוף ההודעה
+ * Email sending function — always sending to you!
+ * @param {string} _to - Unnecessary, ignored
+ * @param {string} subject -Message subject
+ * @param {string} text - Message body
  */
 async function sendEmail(_to, subject, text) {
   const mailOptions = {
     from: 'daniellkarminsky@gmail.com',
-    to: 'daniellkarminsky@gmail.com', // תמיד נשלח אליך!
+    to: 'daniellkarminsky@gmail.com', // Always sent to you!
     subject,
     text
   };
