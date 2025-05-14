@@ -151,8 +151,6 @@ async changePassword(req, res) {
     // Get information from the request body
     const { currentPassword, newPassword } = req.body;
     
-    // No need to verify email - we're using the userId from the JWT token
-    // which was already verified by the auth middleware
     
     // Call the model function to change the password
     const result = await userModel.changePassword(userId, currentPassword, newPassword);

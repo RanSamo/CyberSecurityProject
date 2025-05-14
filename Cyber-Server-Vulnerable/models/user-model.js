@@ -46,45 +46,6 @@ const userModel = {
     }
   },
 
-  // Create a new user (secure version)
-  async createUserSecure(fname, lname, uEmail, password) {
-    const connection = await pool.getConnection();
-    try {
-      // Validate password against configuration
-      const validationResult = await validatePassword(password);
-      if (!validationResult.valid) {
-        return { 
-          success: false, 
-          message: 'Password does not meet requirements', 
-          errors: validationResult.errors 
-        };
-      }
-      
-      // Generate salt and hash - note the await for async hashPassword
-      const salt = securityUtils.generateSalt();
-      const passwordHash = await securityUtils.hashPassword(password, salt);
-      
-      // Secure with parameterized queries
-      const [result] = await connection.query(
-        'INSERT INTO users (first_name, last_name, email, password_hash, salt) VALUES (?, ?, ?, ?, ?)',
-        [fname, lname, uEmail, passwordHash, salt]
-      );
-      
-      // Add password to history
-      await connection.query(
-        'INSERT INTO password_history (user_id, password_hash, salt) VALUES (?, ?, ?)',
-        [result.insertId, passwordHash, salt]
-      );
-      
-      return { success: true, userId: result.insertId };
-    } catch (error) {
-      console.error('Error creating user:', error);
-      return { success: false, error: error.message };
-    } finally {
-      connection.release();
-    }
-  },
-  
   // Verify user login (vulnerable version)
   async verifyUserVulnerable(email, password) {
     const connection = await pool.getConnection();
@@ -127,64 +88,6 @@ const userModel = {
       return { 
         success: true,
         userId: user.user_id,
-        email: user.email
-      };
-    } catch (error) {
-      console.error('Error verifying user:', error);
-      return { success: false, error: error.message };
-    } finally {
-      connection.release();
-    }
-  },
-  
-  // Verify user login (secure version)
-  async verifyUserSecure(email, password) {
-    const connection = await pool.getConnection();
-    try {
-      // Secure with parameterized query
-      const [users] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
-      
-      if (users.length === 0) {
-        return { success: false, message: 'Invalid credentials' };
-      }
-      
-      const user = users[0];
-
-      if (user.account_locked) {
-        return { success: false, message: 'Account is locked. Please reset your password or contact support.' };
-      }
-
-      // Use verifyPassword instead of direct comparison
-      const passwordValid = await securityUtils.verifyPassword(password, user.password_hash, user.salt);
-      
-      if (!passwordValid) {
-        // Update failed login attempts
-        await connection.query(
-          'UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE user_id = ?',
-          [user.user_id]
-        );
-        
-        // Check if account should be locked using config
-        const maxAttempts = passwordConfig.loginAttempts.max;
-        if (user.failed_login_attempts + 1 >= maxAttempts) {
-          await connection.query(
-            'UPDATE users SET account_locked = TRUE WHERE user_id = ?',
-            [user.user_id]
-          );
-        }
-        
-        return { success: false, message: 'Invalid credentials' };
-      }
-      
-      // Reset failed login attempts
-      await connection.query(
-        'UPDATE users SET failed_login_attempts = 0 WHERE user_id = ?',
-        [user.user_id]
-      );
-      
-      return { 
-        success: true,
-        userId: user.user_id,
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name
@@ -196,6 +99,7 @@ const userModel = {
       connection.release();
     }
   },
+  
   
   // Change user password
   async changePassword(userId, currentPassword, newPassword) {
