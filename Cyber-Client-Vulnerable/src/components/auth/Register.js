@@ -11,9 +11,18 @@ const Register = () => {
     const [isPending, setIsPending] = useState(false); //pending state
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
 
-
-    //TODO. Create the right call for the backend checking for user credentials(Ben)
-    //TODO. remove first+last name to fit info for backend
+    // Simple validation function for double check inputs besides React's built-in validation.
+    const validateInput = (input) => {
+        if (typeof input !== 'string') return '';
+    
+        // Check for potential XSS patterns
+        if (/<script|javascript:|on\w+=|alert\(|eval\(/.test(input)) {
+            alert("Potentially unsafe input detected!");
+            return input.replace(/<|>/g, ''); // Remove angle brackets
+        }
+    
+     return input;
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -76,35 +85,35 @@ const Register = () => {
                     type="text"
                     required
                     value={fName}
-                    onChange={(e) => setfName(e.target.value)}
+                    onChange={(e) => setfName(validateInput(e.target.value))}
                 />
                 <label>Last Name:</label>
                 <input
                     type="text"
                     required
                     value={lName}
-                    onChange={(e) => setlName(e.target.value)}
+                    onChange={(e) => setlName(validateInput(e.target.value))}
                 />
                 <label>Strong Password:</label>
                 <input
                     type="password"
                     required
                     value={Password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(validateInput(e.target.value))}
                 />
                 <label>Rewrite Password:</label>
                 <input
                     type="password"
                     required
                     value={rePassword}
-                    onChange={(e) => setrePassword(e.target.value)}
+                    onChange={(e) => setrePassword(validateInput(e.target.value))}
                 />
                 <label>User's Email:</label>
                 <input
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => setuEmail(e.target.value)}
+                    onChange={(e) => setuEmail(validateInput(e.target.value))}
                 />
                 {!isPending && <button>Register</button>}
                 {isPending && <button disabled>Adding user...</button>}
