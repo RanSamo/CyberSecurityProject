@@ -18,10 +18,17 @@ const Login = () => {
         setIsPending(true);
 
         // TODO. VULNERABLE VERSION of login send to BE
+        /*
         fetch(`http://localhost:8000/users/login?email=${email}&password=${password}`, {
             method: 'GET',
             headers: { "Content-Type": "application/json" },
             })
+            */
+            fetch('http://localhost:8000/users/login', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(user)
+        })
         .then(response => response.json())
         .then(data => {
             if (data.success) {

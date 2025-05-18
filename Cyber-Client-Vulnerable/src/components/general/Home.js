@@ -128,7 +128,8 @@ const Home = () => {
                                         <tbody>
                                             {filteredClients.map((client) => (
                                                 <tr key={client.client_id}>
-                                                    <td>{client.first_name} {client.last_name}</td>
+                                                    {/* TODO. this is the vulnerable version*/}
+                                                    <td dangerouslySetInnerHTML={{ __html: client.first_name + ' ' + client.last_name }}></td> 
                                                     <td>{client.email}</td>
                                                     <td>{client.phone}</td>
                                                     <td>{client.address}</td>

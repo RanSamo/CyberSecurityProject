@@ -11,32 +11,13 @@ const userModel = {
   async createUserVulnerable(fname, lname, uEmail, password) {
     const connection = await pool.getConnection();
     try {
-      // Validate password against configuration
-      const validationResult = await validatePassword(password);
-      if (!validationResult.valid) {
-        return { 
-          success: false, 
-          message: 'Password does not meet requirements', 
-          errors: validationResult.errors 
-        };
-      }
-      
-      // Generate salt and hash - note the await for async hashPassword
-      const salt = securityUtils.generateSalt();
-      const passwordHash = await securityUtils.hashPassword(password, salt);
       
       // Vulnerable to SQL injection
       const query = `INSERT INTO users (first_name, last_name, email, password_hash, salt) 
-                    VALUES ('${fname}', '${lname}', '${uEmail}', '${passwordHash}', '${salt}')`;
+                    VALUES ('${fname}', '${lname}', '${uEmail}', '${password}', 'salt')`;
       
       const [result] = await connection.query(query);
-      
-      // Add password to history
-      await connection.query(
-        `INSERT INTO password_history (user_id, password_hash, salt) 
-        VALUES (${result.insertId}, '${passwordHash}', '${salt}')`
-      );
-      
+    
       return { success: true, userId: result.insertId };
     } catch (error) {
       console.error('Error creating user:', error);
@@ -48,57 +29,35 @@ const userModel = {
 
   // Verify user login (vulnerable version)
   async verifyUserVulnerable(email, password) {
-    const connection = await pool.getConnection();
-    try {
-      // Vulnerable to SQL injection
-      const query = `SELECT * FROM users WHERE email = '${email}'`;
-      const [users] = await connection.query(query);
-      
-      if (users.length === 0) {
-        return { success: false, message: 'Invalid credentials' };
-      }
-      
-      const user = users[0];
-      
-      // Use verifyPassword instead of direct comparison
-      const passwordValid = await securityUtils.verifyPassword(password, user.password_hash, user.salt);
-      
-      if (!passwordValid) {
-        // Update failed login attempts
-        await connection.query(
-          `UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE user_id = ${user.user_id}`
-        );
-        
-        // Check if account should be locked using config
-        const maxAttempts = passwordConfig.loginAttempts.max;
-        if (user.failed_login_attempts + 1 >= maxAttempts) {
-          await connection.query(
-            `UPDATE users SET account_locked = TRUE WHERE user_id = ${user.user_id}`
-          );
-        }
-        
-        return { success: false, message: 'Invalid credentials' };
-      }
-      
-      // Reset failed login attempts
-      await connection.query(
-        `UPDATE users SET failed_login_attempts = 0 WHERE user_id = ${user.user_id}`
-      );
-      
-      return { 
-        success: true,
-        userId: user.user_id,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name
-      };
-    } catch (error) {
-      console.error('Error verifying user:', error);
-      return { success: false, error: error.message };
-    } finally {
-      connection.release();
+  const connection = await pool.getConnection();
+  try {
+    // Vulnerable to SQL injection - direct string concatenation
+    const query = `SELECT * FROM users WHERE email = '${email}' AND password_hash = '${password}'`;
+    
+    
+    const [users] = await connection.query(query);
+    
+    if (users.length === 0) {
+      return { success: false, message: 'Invalid credentials' };
     }
-  },
+    
+    const user = users[0];
+    
+    // Return user data directly - no need for complex verification
+    return { 
+      success: true,
+      userId: user.user_id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name
+    };
+  } catch (error) {
+    console.error('Error verifying user:', error);
+    return { success: false, error: error.message };
+  } finally {
+    connection.release();
+  }
+},
   
   
   // Change user password

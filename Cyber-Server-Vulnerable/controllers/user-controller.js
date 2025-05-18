@@ -10,16 +10,6 @@ const userController = {
     try {
       const { firstName, lastName, uEmail, password } = req.body;
       
-      // Validate the password against configuration requirements
-      const validationResult = await validatePassword(password);
-      if (!validationResult.valid) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Password does not meet requirements',
-          errors: validationResult.errors
-        });
-      }
-      
       const result = await userModel.createUserVulnerable(firstName, lastName, uEmail, password);
       
       if (result.success) {
@@ -42,13 +32,14 @@ async loginUser(req, res) {
   try {
     const { uEmail, password } = req.body;
     
+    /*
     // First find user by email
     const userResult = await userModel.findUserByEmail(uEmail);
     
     if (!userResult.success) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
-    
+    */
     // Now verify with email and password
     const result = await userModel.verifyUserVulnerable(uEmail, password);
     
