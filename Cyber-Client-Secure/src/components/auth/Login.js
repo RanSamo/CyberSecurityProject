@@ -11,7 +11,6 @@ const Login = () => {
     const [isPending, setIsPending] = useState(false); //pending state
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
 
-// TODO. need to modify the BE to return the userId, firstName, lastName and email in the response.
     const handleSubmit = (e) => {
         e.preventDefault();
         const user = { uEmail : email, password: password };

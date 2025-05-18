@@ -128,8 +128,8 @@ const SystemPage = () => {
                     <h3>New Client Added Successfully!</h3>
                     <div className="client-details">
                         <p><strong>Name:</strong> {newClient.fullName}</p>
-                    {/* TODO. This is the vunerable version.
-                    <p><strong>Name:</strong> <span dangerouslySetInnerHTML={{ __html: newClient.fullName }}></span></p> */}
+                    {/* TODO. This is the vunerable version.*/}
+                    <p><strong>Name:</strong> <span dangerouslySetInnerHTML={{ __html: newClient.fullName }}></span></p> 
                         <p><strong>Phone:</strong> {newClient.phoneNumber}</p>
                         <p><strong>Address:</strong> {newClient.address}</p>
                         <p><strong>Email:</strong> {newClient.cEmail}</p>

@@ -12,8 +12,6 @@ const Register = () => {
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
 
 
-    //TODO. Create the right call for the backend checking for user credentials(Ben)
-    //TODO. remove first+last name to fit info for backend
 
     const handleSubmit = (e) => {
         e.preventDefault();

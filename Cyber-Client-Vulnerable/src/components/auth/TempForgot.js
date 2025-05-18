@@ -7,7 +7,6 @@ const TempForgot = () => {
     const [isPending, setIsPending] = useState(false); //pending state
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
 
-    // TODO. Create the right function for the temp password to be created(ben)
     const handleSubmit = (e) => {
         e.preventDefault();
 
