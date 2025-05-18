@@ -108,9 +108,10 @@ const Register = () => {
                     value={rePassword}
                     onChange={(e) => setrePassword(validateInput(e.target.value))}
                 />
+                {/* TODO. this is the vunerable email- with text type instead of email*/}
                 <label>User's Email:</label>
                 <input
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setuEmail(validateInput(e.target.value))}

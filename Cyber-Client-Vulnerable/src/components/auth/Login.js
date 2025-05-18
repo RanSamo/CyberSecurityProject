@@ -52,8 +52,9 @@ const Login = () => {
         <div className="login">
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>
+                {/* TODO. this is the vunerable email- with text type instead of email*/}
                 <label>Email:</label>
-                <input type="email"
+                <input type="text"
                     required
                     value={email}
                     onChange={(e) => setuEmail(e.target.value)}
