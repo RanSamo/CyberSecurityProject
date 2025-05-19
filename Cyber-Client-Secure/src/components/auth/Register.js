@@ -17,7 +17,7 @@ const Register = () => {
         e.preventDefault();
 
         if (Password !== rePassword) {
-            alert("Passwords do not match");
+            alert("Passwords do not match, please try again.");
             return;
         }
 
@@ -48,17 +48,10 @@ const Register = () => {
                     alert(data.message || 'Registration failed');
                 }
             })
-            .catch(err => {
-                console.warn("⚠️ Server not available, simulating response...");
-                const fakeResponse = {
-                    success: true,
-                    userId: 101,
-                    uEmail: email
-                };
-                console.log("📥 Simulated response:", fakeResponse);
-                alert("Simulated registration complete");
-                navigate('/login');
-            })
+           .catch(err => {
+                console.error("Error during registration:", err);
+                alert("Unable to connect to the server. Please try again later.");
+                })
             .finally(() => {
                 setIsPending(false);
             });

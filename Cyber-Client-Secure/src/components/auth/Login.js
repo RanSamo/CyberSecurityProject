@@ -10,6 +10,7 @@ const Login = () => {
     const [email, setuEmail] = useState(''); //user email
     const [isPending, setIsPending] = useState(false); //pending state
     const navigate = useNavigate(); //useNavigate hook to programmatically navigate
+    const [errorMessage, setErrorMessage] = useState(''); //error message state;
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -46,7 +47,11 @@ const Login = () => {
                 alert(data.message ||'Failed to log in. Please check your credentials.');
             }
         })
-        
+        .catch(err => {
+            console.error('Error during login:', err);
+            setIsPending(false);
+            setErrorMessage('Unable to connect to the server. Please try again later.');
+        });        
     }
 
     return (
@@ -65,7 +70,8 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
-
+                {errorMessage && <div className="error-message">{errorMessage}</div>}
+                
                 <div className="forgot-password-link">
                     <Link to="/TempForgot">Forgot Password?</Link>
                 </div>

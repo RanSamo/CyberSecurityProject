@@ -100,3 +100,15 @@
 .login-regi a:hover {
   text-decoration: underline;
 }
+
+.error-message {
+  background-color: #fff1f0; /* Light red background */
+  color: #d32f2f; /* Red text color */
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 14px;
+  border-left: 3px solid #d32f2f; 
+  font-weight: bold;
+}

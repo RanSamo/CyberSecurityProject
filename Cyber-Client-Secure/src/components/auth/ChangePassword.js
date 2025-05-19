@@ -53,10 +53,8 @@ const ChangePassword = () => {
                 }
             })
             .catch(err => {
-                console.warn('⚠️ Server not available, simulating response...');
-                const simulatedResponse = { success: true, message: 'Simulated password change success' };
-                console.log('🧪 Simulated response:', simulatedResponse);
-                alert(simulatedResponse.message);
+                console.error("Error during Changing password:", err);
+                alert("Unable to connect to the server. Please try again later.");
             })
             .finally(() => {
                 setIsPending(false);

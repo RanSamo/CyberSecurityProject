@@ -13,7 +13,8 @@ import { AuthProvider } from './components/auth/AuthContext'; // Import AuthProv
 
 function App() {
   return (
-    <AuthProvider> {/* Wrap the entire app with AuthProvider */}
+    <AuthProvider> {/* Wrap the entire app with AuthProvider to make sure it will 
+    be working while app is running at all times. */}
       <Router>
         <div className="App">
           <Navbar />

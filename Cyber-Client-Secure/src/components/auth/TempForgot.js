@@ -26,20 +26,14 @@ const TempForgot = () => {
 
                 if (data.success) {
                     console.log('✅ Password reset email sent successfully');
-                    navigate('/reset-password'); // או דף אחר שתבחר
+                    navigate('/reset-password'); 
                 } else {
                     alert(data.message || 'Failed to request password reset');
                 }
             })
             .catch(err => {
-                console.warn('⚠️ Server not available, simulating response...');
-                const fakeResponse = {
-                    success: true,
-                    message: 'Simulated password reset email sent'
-                };
-                console.log("📥 Simulated response:", fakeResponse);
-                alert('Simulated password reset complete');
-                navigate('/reset-password'); // או דף אחר שתבחר
+                console.error("Error during trying to getting token for changing password:", err);
+                alert("Unable to connect to the server. Please try again later.");
             })
             .finally(() => {
                 setIsPending(false);
