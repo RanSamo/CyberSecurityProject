@@ -18,7 +18,7 @@ const Login = () => {
         console.log(user);
         setIsPending(true);
 
-        // Create the right call for the backend checking for user credentials(Ran did instead of Ben, my bad.)
+        console.log("📤 Sending login request:", JSON.stringify(user)); // writing Log showing the user creds.
         fetch('http://localhost:8001/users/login', {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
@@ -71,7 +71,7 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                 />
                 {errorMessage && <div className="error-message">{errorMessage}</div>}
-                
+
                 <div className="forgot-password-link">
                     <Link to="/TempForgot">Forgot Password?</Link>
                 </div>

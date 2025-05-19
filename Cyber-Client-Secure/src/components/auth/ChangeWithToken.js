@@ -5,7 +5,7 @@ import './ChangeWithToken.css';
 
 const ChangeWithToken = () => {
     const { getAuthHeader } = useContext(AuthContext);
-    const [token, setToken] = useState(''); // שים לב - אות קטנה
+    const [token, setToken] = useState(''); 
     const [newPassword, setNewPassword] = useState('');
     const [reNewPassword, setReNewPassword] = useState('');
     const [isPending, setIsPending] = useState(false);
@@ -20,7 +20,7 @@ const ChangeWithToken = () => {
         }
 
         const passwordChangeRequest = {
-            token,          // ← כאן האות קטנה
+            token,          
             newPassword
         };
 
