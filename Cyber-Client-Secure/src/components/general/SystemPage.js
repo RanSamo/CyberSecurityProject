@@ -48,7 +48,7 @@ const SystemPage = () => {
         // Get token from localStorage or user object
         const token = localStorage.getItem("token") || (user && user.token);
 
-        fetch('http://localhost:8000/system', {
+        fetch('http://localhost:8001/system', {
             method: 'POST',
             headers: { 
                 "Content-Type": "application/json",

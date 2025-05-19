@@ -18,7 +18,7 @@ const Login = () => {
         setIsPending(true);
 
         // Create the right call for the backend checking for user credentials(Ran did instead of Ben, my bad.)
-        fetch('http://localhost:8000/users/login', {
+        fetch('http://localhost:8001/users/login', {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(user)

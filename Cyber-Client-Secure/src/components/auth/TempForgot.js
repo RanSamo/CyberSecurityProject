@@ -15,7 +15,7 @@ const TempForgot = () => {
 
         console.log("📤 Sending forgot password request:", JSON.stringify(userEmail));
 
-        fetch('http://localhost:8000/users/request-reset', {
+        fetch('http://localhost:8001/users/request-reset', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userEmail)

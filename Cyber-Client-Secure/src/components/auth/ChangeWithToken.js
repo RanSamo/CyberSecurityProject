@@ -26,7 +26,7 @@ const ChangeWithToken = () => {
 
         setIsPending(true);
 
-        fetch('http://localhost:8000/users/reset-password', {
+        fetch('http://localhost:8001/users/reset-password', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

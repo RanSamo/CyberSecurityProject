@@ -1,3 +1,4 @@
+const mysql = require('mysql'); 
 const { pool } = require('../config/db');
 const securityUtils = require('../utils/security-utils');
 const passwordConfig = require('../config/password-config');
@@ -7,58 +8,88 @@ const crypto = require('crypto');
 
 // User-related database functions
 const userModel = {
-  // Create a new user (vulnerable version for SQL injection demonstration)
+
+ // Create a new user (vulnerable version for SQL injection demonstration)
   async createUserVulnerable(fname, lname, uEmail, password) {
-    const connection = await pool.getConnection();
-    try {
+    return new Promise((resolve, reject) => {
+      // Create a connection using the original mysql package
+      const connection = mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        multipleStatements: true // Enable multiple statements for more advanced injections
+      });
       
-      // Vulnerable to SQL injection
-      const query = `INSERT INTO users (first_name, last_name, email, password_hash, salt) 
-                    VALUES ('${fname}', '${lname}', '${uEmail}', '${password}', 'salt')`;
+      // Generate simple salt for demonstration
+      const salt = 'vulnerablesalt';
       
-      const [result] = await connection.query(query);
-    
-      return { success: true, userId: result.insertId };
-    } catch (error) {
-      console.error('Error creating user:', error);
-      return { success: false, error: error.message };
-    } finally {
-      connection.release();
-    }
+      // Vulnerable to SQL injection - direct string concatenation
+      const query = "INSERT INTO users (first_name, last_name, email, password_hash, salt) " +
+                    "VALUES ('" + fname + "', '" + lname + "', '" + uEmail + "', '" + password + "', '" + salt + "')";
+      
+      console.log("VULNERABLE REGISTER QUERY:", query);
+      
+      // Execute the query directly
+      connection.query(query, (error, results) => {
+        connection.end(); // Always close the connection
+        
+        if (error) {
+          console.error('Error creating user:', error);
+          reject({ success: false, error: error.message });
+        } else {
+          resolve({ success: true, userId: results.insertId });
+        }
+      });
+    });
   },
 
   // Verify user login (vulnerable version)
   async verifyUserVulnerable(email, password) {
-  const connection = await pool.getConnection();
-  try {
-    // Vulnerable to SQL injection - direct string concatenation
-    const query = `SELECT * FROM users WHERE email = '${email}' AND password_hash = '${password}'`;
-    
-    
-    const [users] = await connection.query(query);
-    
-    if (users.length === 0) {
-      return { success: false, message: 'Invalid credentials' };
-    }
-    
-    const user = users[0];
-    
-    // Return user data directly - no need for complex verification
-    return { 
-      success: true,
-      userId: user.user_id,
-      email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name
-    };
-  } catch (error) {
-    console.error('Error verifying user:', error);
-    return { success: false, error: error.message };
-  } finally {
-    connection.release();
-  }
-},
-  
+    return new Promise((resolve, reject) => {
+      // Create a connection using the original mysql package
+      const connection = mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        multipleStatements: true // Enable multiple statements for more advanced injections
+      });
+      
+      // Vulnerable to SQL injection - direct string concatenation
+      const query = "SELECT * FROM users WHERE email = '" + email + "' AND password_hash = '" + password + "'";
+      
+      console.log("VULNERABLE LOGIN QUERY:", query);
+      
+      // Execute the query directly
+      connection.query(query, (error, users) => {
+        if (error) {
+          console.error('Error verifying user:', error);
+          connection.end();
+          reject({ success: false, error: error.message });
+          return;
+        }
+        
+        if (users.length === 0) {
+          connection.end();
+          resolve({ success: false, message: 'Invalid credentials' });
+          return;
+        }
+        
+        const user = users[0];
+        
+        // Return user data directly
+        connection.end();
+        resolve({ 
+          success: true,
+          userId: user.user_id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name
+        });
+      });
+    });
+  },
   
   // Change user password
   async changePassword(userId, currentPassword, newPassword) {

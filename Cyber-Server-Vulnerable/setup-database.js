@@ -6,7 +6,7 @@ async function setupDatabase() {
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD
+    password: process.env.DB_PASSWORD,
   });
 
   try {
@@ -54,7 +54,7 @@ async function setupDatabase() {
       CREATE TABLE IF NOT EXISTS clients (
         client_id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
-        first_name VARCHAR(50) NOT NULL,
+        first_name VARCHAR(100) NOT NULL,
         last_name VARCHAR(50) NOT NULL,
         email VARCHAR(100) NOT NULL,
         phone VARCHAR(20),

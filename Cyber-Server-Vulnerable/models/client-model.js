@@ -1,27 +1,42 @@
+const mysql = require('mysql');
 const { pool } = require('../config/db');
 
 // Client-related database functions
 const clientModel = {
-  // Create a new client (vulnerable version for XSS demonstration)
-  async createClientVulnerable(clientData, userId) {
-    const connection = await pool.getConnection();
-    try {
-      // Vulnerable version - direct string concatenation (SQL injection)
-      const query = `INSERT INTO clients (user_id, first_name, last_name, email, phone, address, package) 
-                    VALUES (${userId}, '${clientData.firstName}', '${clientData.lastName}', '${clientData.email}', 
-                            '${clientData.phone}', '${clientData.address}', '${clientData.package}')`;
+async createClientVulnerable(clientData, userId) {
+  return new Promise((resolve, reject) => {
+    // Create a connection using the original mysql package
+    const connection = mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      multipleStatements: true // Enable multiple statements for more advanced injections
+    });
+    
+    // Construct the vulnerable query with string concatenation
+    const query = "INSERT INTO clients (user_id, first_name, last_name, email, phone, address, package) " +
+                 "VALUES (" + userId + ", '" + clientData.firstName + "', '" + clientData.lastName + "', '" +
+                 clientData.email + "', '" + clientData.phone + "', '" + clientData.address + "', '" +
+                 clientData.package + "')";
+    
+    console.log("VULNERABLE QUERY:", query);
+    
+    // Execute the query directly
+    connection.query(query, (error, results) => {
+      connection.end(); // Always close the connection
       
-      const [result] = await connection.query(query);
-      
-      return { success: true, clientId: result.insertId };
-    } catch (error) {
-      console.error('Error creating client:', error);
-      return { success: false, error: error.message };
-    } finally {
-      connection.release();
-    }
+      if (error) {
+        console.error('Error creating client:', error);
+        reject({ success: false, error: error.message });
+      } else {
+        resolve({ success: true, clientId: results.insertId });
+      }
+    });
+    });
   },
-  
+
+
   // Get all clients for a specific user 
   async getAllClientsForUser(userId) {
     const connection = await pool.getConnection();
@@ -94,3 +109,6 @@ const clientModel = {
 };
 
 module.exports = clientModel;
+
+
+

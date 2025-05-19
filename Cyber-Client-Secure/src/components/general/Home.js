@@ -21,7 +21,7 @@ const Home = () => {
         setError(null);
         const token = localStorage.getItem("token") || (user && user.token);
 
-        fetch(`http://localhost:8000/clients`, {
+        fetch(`http://localhost:8001/clients`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ const Home = () => {
 
         const token = localStorage.getItem("token") || (user && user.token);
 
-        fetch(`http://localhost:8000/clients/${id}`, {
+        fetch(`http://localhost:8001/clients/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

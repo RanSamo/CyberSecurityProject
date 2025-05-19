@@ -127,7 +127,6 @@ const SystemPage = () => {
                 <div className="confirmation-message">
                     <h3>New Client Added Successfully!</h3>
                     <div className="client-details">
-                        <p><strong>Name:</strong> {newClient.fullName}</p>
                     {/* TODO. This is the vunerable version.*/}
                     <p><strong>Name:</strong> <span dangerouslySetInnerHTML={{ __html: newClient.fullName }}></span></p> 
                         <p><strong>Phone:</strong> {newClient.phoneNumber}</p>

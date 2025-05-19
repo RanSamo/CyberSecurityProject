@@ -32,7 +32,7 @@ const Register = () => {
 
         console.log("📤 Sending registration data:", JSON.stringify(user));
 
-        fetch('http://localhost:8000/users/register', {
+        fetch('http://localhost:8001/users/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(user)
