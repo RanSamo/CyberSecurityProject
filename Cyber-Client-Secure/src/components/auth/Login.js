@@ -54,7 +54,8 @@ const Login = () => {
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>
                 <label>Email:</label>
-                <input type="email"
+                {/*TODO.changed to text instaed of email for demo */}
+                <input type="text"
                     required
                     value={email}
                     onChange={(e) => setuEmail(e.target.value)}
