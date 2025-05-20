@@ -17,9 +17,18 @@ async function setupDatabase() {
     // Select the database
     await connection.query(`USE ${process.env.DB_NAME}`);
 
+    // Drop existing tables safely (disable FK checks first)
+    await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
+    await connection.query(`DROP TABLE IF EXISTS client_packages`);
+    await connection.query(`DROP TABLE IF EXISTS clients`);
+    await connection.query(`DROP TABLE IF EXISTS password_history`);
+    await connection.query(`DROP TABLE IF EXISTS users`);
+    await connection.query(`SET FOREIGN_KEY_CHECKS = 1`);
+    console.log('Old tables dropped successfully');
+
     // Create users table
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         user_id INT AUTO_INCREMENT PRIMARY KEY,
         first_name VARCHAR(50) NOT NULL,
         last_name VARCHAR(50) NOT NULL,
@@ -33,10 +42,10 @@ async function setupDatabase() {
       )
     `);
     console.log('Users table created successfully');
-    
+
     // Create password history table
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS password_history (
+      CREATE TABLE password_history (
         history_id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         password_hash VARCHAR(256) NOT NULL,
@@ -46,27 +55,36 @@ async function setupDatabase() {
       )
     `);
     console.log('Password history table created successfully');
-    
-    // Create clients table with user_id foreign key
-    // unique_email_per_user - ensures that a single user cannot have multiple clients with the same email
-    // but different users can have clients with the same email
+
+    // Create clients table
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS clients (
+      CREATE TABLE clients (
         client_id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         first_name VARCHAR(50) NOT NULL,
         last_name VARCHAR(50) NOT NULL,
         email VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
-        address VARCHAR(255),  
+        address VARCHAR(255),
         package VARCHAR(255) DEFAULT NULL,
         FOREIGN KEY (user_id) REFERENCES users(user_id),
-        UNIQUE KEY unique_email_per_user (email, user_id) 
+        UNIQUE KEY unique_email_per_user (email, user_id)
       )
     `);
-    console.log('clients table created successfully');
-   
-    // Create indexes for better performance
+    console.log('Clients table created successfully');
+
+    // (Optional) Create client_packages table again if needed
+    await connection.query(`
+      CREATE TABLE client_packages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        client_id INT NOT NULL,
+        package_name VARCHAR(255),
+        FOREIGN KEY (client_id) REFERENCES clients(client_id)
+      )
+    `);
+    console.log('Client_packages table created successfully');
+
+    // Create indexes
     try {
       await connection.query(`CREATE INDEX idx_users_email ON users(email)`);
       await connection.query(`CREATE INDEX idx_clients_user_id ON clients(user_id)`);
@@ -78,7 +96,7 @@ async function setupDatabase() {
         console.error('Error creating index:', error.message);
       }
     }
-    
+
   } catch (error) {
     console.error('Error setting up database:', error);
   } finally {
