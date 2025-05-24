@@ -45,7 +45,15 @@ const Register = () => {
                     console.log('✅ Registration successful');
                     navigate('/login');
                 } else {
+                    // Show detailed errors from backend
+                    if (data.errors && Array.isArray(data.errors)) {
+                        // Join all error messages with line breaks
+                        const errorMessage = data.errors.join('\n\n');
+                        alert(errorMessage);
+                    }
+                else {
                     alert(data.message || 'Registration failed');
+                }
                 }
             })
             .catch(err => {

@@ -1,6 +1,7 @@
 import { useContext, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AuthContext from "../auth/AuthContext";
+import { decode } from 'html-entities';
 import "./Home.css";
 
 const Home = () => {
@@ -8,7 +9,7 @@ const Home = () => {
     const [clients, setClients] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [searchTerm, setSearchTerm] = useState(""); // 🆕 search state
+    const [searchTerm, setSearchTerm] = useState(""); // search state
 
     useEffect(() => {
         if (isLoggedIn) {
@@ -46,10 +47,13 @@ const Home = () => {
             });
     };
 
-    // 🧠 filter clients by full name
-    const filteredClients = clients.filter(client =>
-        `${client.first_name} ${client.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // filter clients by full name - decode before searching for better UX
+    const filteredClients = clients.filter(client => {
+        const decodedFirstName = decode(client.first_name);
+        const decodedLastName = decode(client.last_name);
+        const fullName = `${decodedFirstName} ${decodedLastName}`;
+        return fullName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     const handleDelete = (id) => {
         if (!window.confirm("Are you sure you want to delete this client?")) return;
@@ -77,13 +81,15 @@ const Home = () => {
             });
     };
 
-
     return (
         <div className="home">
             {isLoggedIn ? (
                 <>
                     <div className="home-header">
-                        <h2>Welcome back, {user?.fullName || "User"}!</h2>
+                        <h2>Welcome back, {user?.fullName ? decode(user.fullName) : 
+                   (user?.firstName && user?.lastName) ? 
+                   `${decode(user.firstName)} ${decode(user.lastName)}` : 
+                   "User"}!</h2>
                         <p>Manage your client database below</p>
                     </div>
 
@@ -94,7 +100,7 @@ const Home = () => {
                         </button>
                     </div>
 
-                    {/* 🔍 search input */}
+                    {/* search input */}
                     <div className="search-container">
                         <input
                             type="text"
@@ -122,17 +128,17 @@ const Home = () => {
                                                 <th>Address</th>
                                                 <th>Package</th>
                                                 <th>Delete</th>
-
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {filteredClients.map((client) => (
                                                 <tr key={client.client_id}>
-                                                    <td>{client.first_name} {client.last_name}</td>
-                                                    <td>{client.email}</td>
-                                                    <td>{client.phone}</td>
-                                                    <td>{client.address}</td>
-                                                    <td>{client.package}</td>
+                                                    {/* SECURE VERSION - Decode ALL fields for user-friendly display */}
+                                                    <td>{decode(client.first_name)} {decode(client.last_name)}</td>
+                                                    <td>{decode(client.email)}</td>
+                                                    <td>{decode(client.phone)}</td>
+                                                    <td>{decode(client.address)}</td>
+                                                    <td>{decode(client.package)}</td>
                                                     <td>
                                                         <button className="delete-btn" onClick={() => handleDelete(client.client_id)}>
                                                             Delete

@@ -86,7 +86,7 @@ const SystemPage = () => {
             } else {
                 console.error('Error while adding a client:', data.message);
                 setIsPending(false);
-                alert('Failed to add client, please check what is missing.');
+                alert(data.message || 'Failed to add client, please check what is missing.');
             }
         })
         .catch(error => {
@@ -119,8 +119,6 @@ const SystemPage = () => {
         <div className="system-page">
             <h2>System Management</h2>
             
-            {/* Optional welcome message showing logged-in user */}
-            <p className="welcome-message">Welcome, {user.uEmail}</p>
 
             {/* Display the newly added client */}
             {showConfirmation && newClient && (

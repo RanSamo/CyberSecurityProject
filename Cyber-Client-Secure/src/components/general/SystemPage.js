@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import AuthContext from '../auth/AuthContext'; // Import AuthContext
+import { useNavigate } from 'react-router-dom';
+import AuthContext from '../auth/AuthContext';
+import { decode } from 'html-entities';
 import './SystemPage.css';
 
 const SystemPage = () => {
@@ -11,7 +12,7 @@ const SystemPage = () => {
     // Redirect if not logged in
     useEffect(() => {
         if (!isLoggedIn) {
-            navigate('/login'); // Redirect to login page if not logged in
+            navigate('/login');
         }
     }, [isLoggedIn, navigate]);
 
@@ -43,6 +44,7 @@ const SystemPage = () => {
             packageLevel
         };
 
+        console.log('📤 Sending client data (SECURE VERSION):', clientData);
         setIsPending(true);
 
         // Get token from localStorage or user object
@@ -58,11 +60,12 @@ const SystemPage = () => {
         })
         .then(response => response.json())
         .then(data => {
+            console.log('📥 Server response:', data);
+            
             if (data.success) {
-                console.log('Client was added successfully:', data);
+                console.log('✅ Client was added successfully');
                 setIsPending(false);
                 
-                // Set the new client data for display
                 setNewClient({
                     ...clientData,
                     fullName: `${firstName} ${lastName}`
@@ -79,18 +82,25 @@ const SystemPage = () => {
                 setCEmail('');
                 setPackageLevel('100 Mb');
 
-                // Hide confirmation after 5 seconds
+                // Hide confirmation after 10 seconds
                 setTimeout(() => {
                     setShowConfirmation(false);
                 }, 10000);
             } else {
-                console.error('Error while adding a client:', data.message);
+                console.error('❌ Error while adding client:', data.message);
                 setIsPending(false);
-                alert('Failed to add client, please check what is missing.');
+                
+                // Show detailed errors from backend in alert
+                if (data.errors && Array.isArray(data.errors)) {
+                    const errorMessage = data.errors.join('\n\n');
+                    alert(errorMessage);
+                } else {
+                    alert(data.message || 'Failed to add client, please check your input.');
+                }
             }
         })
         .catch(error => {
-            console.error('Error adding a client:', error);
+            console.error('❌ Error adding client:', error);
             setIsPending(false);
             alert('Failed to add client. Please try again.');
         });
@@ -112,17 +122,14 @@ const SystemPage = () => {
 
     // Don't render anything while checking auth status or if not logged in
     if (!isLoggedIn) {
-        return null; // Or return a loading spinner
+        return null;
     }
 
     return (
         <div className="system-page">
             <h2>System Management</h2>
-            
-            {/* Optional welcome message showing logged-in user */}
-            <p className="welcome-message">Welcome, {user.uEmail}</p>
 
-            {/* Display the newly added client */}
+            {/* Display the newly added client confirmation */}
             {showConfirmation && newClient && (
                 <div className="confirmation-message">
                     <h3>New Client Added Successfully!</h3>
@@ -189,8 +196,8 @@ const SystemPage = () => {
                         <option value="300 Mb">300 Mb</option>
                     </select>
 
-                    {!isPending && <button>Add Client</button>}
-                    {isPending && <button disabled>Adding Client...</button>}
+                    {!isPending && <button type="submit">Add Client</button>}
+                    {isPending && <button type="button" disabled>Adding Client...</button>}
                 </form>
             </div>
         </div>
